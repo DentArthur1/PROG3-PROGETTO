@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17.0.12" fx:controller="com.example.client.InboxController">
+    <!-- Top Bar -->
+    <top>
+        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 10;">
+            <Text text="Ciao, Utente" style="-fx-font-size: 18px;"/>
+            <Region fx:id="spacer" HBox.hgrow="ALWAYS"/>
+            <Button text="Logout" onAction="#handleLogout"/>
+        </HBox>
+    </top>
+
+    <!-- Left Side - Buttons -->
+    <left>
+        <VBox spacing="10" style="-fx-padding: 10;">
+            <Button onAction="#handleCompose" text="Scrivi" />
+            <Button onAction="#handleDelete" text="Elimina" />
+        </VBox>
+    </left>
+
+    <!-- Center - Mail List and Message Viewer -->
+    <center>
+        <VBox spacing="10" style="-fx-padding: 10;">
+            <!-- Mail List -->
+            <TableView fx:id="emailTable" onMouseClicked="#handleEmailClick">
+                <columns>
+                    <TableColumn fx:id="recipientColumn" text="Destinatario" />
+                    <TableColumn fx:id="subjectColumn" text="Titolo" />
+                </columns>
+            </TableView>
+
+            <!-- Message Viewer -->
+            <TextArea fx:id="messageContent" editable="false" prefRowCount="10" wrapText="true" />
+        </VBox>
+    </center>
+</BorderPane>
