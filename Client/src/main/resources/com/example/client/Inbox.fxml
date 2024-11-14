@@ -30,13 +30,13 @@
             <!-- Mail List -->
             <TableView fx:id="emailTable" onMouseClicked="#handleEmailClick">
                 <columns>
-                    <TableColumn fx:id="recipientColumn" text="Destinatario" />
+                    <!-- Colonna per il destinatario con larghezza fissa -->
+                    <TableColumn fx:id="recipientColumn" text="Destinatario" prefWidth="200" />
+
+                    <!-- Colonna per il titolo che si espande automaticamente -->
                     <TableColumn fx:id="subjectColumn" text="Titolo" />
                 </columns>
             </TableView>
-
-            <!-- Message Viewer -->
-            <TextArea fx:id="messageContent" editable="false" prefRowCount="10" wrapText="true" />
         </VBox>
     </center>
 </BorderPane>
