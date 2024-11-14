@@ -9,6 +9,8 @@
     <top>
         <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 10;">
             <Text text="Ciao, Utente" style="-fx-font-size: 18px;"/>
+            <!-- Connection Status Label -->
+            <Label fx:id="connectionStatus" text="Connessione: Attiva" style="-fx-font-size: 14px; -fx-text-fill: green;" />
             <Region fx:id="spacer" HBox.hgrow="ALWAYS"/>
             <Button text="Logout" onAction="#handleLogout"/>
         </HBox>
