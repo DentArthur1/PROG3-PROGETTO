@@ -30,6 +30,9 @@
     <!-- Pulsante per inviare l'email -->
     <Button text="Invia" onAction="#sendEmail" />
 
+    <!-- Pulsante per tornare alla casella di posta -->
+    <Button text="Indietro" onAction="#goBack" />
+
     <!-- Etichetta per mostrare errori o conferme -->
     <Label fx:id="statusLabel" textFill="red" />
 </VBox>
