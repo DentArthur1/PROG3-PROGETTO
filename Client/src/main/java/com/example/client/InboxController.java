@@ -15,19 +15,16 @@ public class InboxController {
     @FXML
     protected void handleLogout() {
         try {
-            // Close the current window using connectionStatus label as a reference
-            Stage currentStage = (Stage) connectionStatus.getScene().getWindow();
-            currentStage.close();
-
-            // Load Login.fxml
+            // Carica il file FXML per la scena "Login.fxml"
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Login.fxml"));
-            Scene scene = new Scene(fxmlLoader.load());
+            Scene loginScene = new Scene(fxmlLoader.load());
 
-            // Set up a new stage for Login.fxml and show it
-            Stage loginStage = new Stage();
-            loginStage.setScene(scene);
-            loginStage.setTitle("Login");
-            loginStage.show();
+            // Ottieni lo Stage corrente (la finestra)
+            Stage currentStage = (Stage) connectionStatus.getScene().getWindow();
+
+            // Sostituisci la scena attuale con quella di login
+            currentStage.setScene(loginScene);
+            currentStage.setTitle("Login");  // Imposta il titolo della finestra su "Login"
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -35,17 +32,18 @@ public class InboxController {
 
     @FXML
     protected void handleCompose() {
-        // Logic for composing an email
+        // Logica per comporre una nuova email
         try {
-            // Load Send.fxml
+            // Carica il file FXML per la scena "Send.fxml"
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Send.fxml"));
-            Scene scene = new Scene(fxmlLoader.load());
+            Scene sendScene = new Scene(fxmlLoader.load());
 
-            // Set up a new stage for Send.fxml and show it
-            Stage sendStage = new Stage();
-            sendStage.setScene(scene);
-            sendStage.setTitle("Scrivi");
-            sendStage.show();
+            // Ottieni lo Stage corrente (la finestra)
+            Stage currentStage = (Stage) connectionStatus.getScene().getWindow();
+
+            // Sostituisci la scena attuale con quella nuova (Sen.fxml)
+            currentStage.setScene(sendScene);
+            currentStage.setTitle("Scrivi");  // Aggiorna il titolo della finestra se necessario
         } catch (IOException e) {
             e.printStackTrace();
         }

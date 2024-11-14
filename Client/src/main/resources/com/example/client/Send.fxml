@@ -5,9 +5,16 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Pos?>
 
 <VBox spacing="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.example.client.sendController" alignment="TOP_LEFT" style="-fx-padding: 20;">
+
+    <!-- Contenitore per il pulsante "Go Back" in alto a destra -->
+    <HBox alignment="TOP_RIGHT" spacing="10" style="-fx-padding: 10;">
+        <Button text="Go Back" onAction="#goBack" />
+    </HBox>
 
     <!-- Campo per destinatari -->
     <Label text="Destinatari:" />
