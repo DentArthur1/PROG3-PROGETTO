@@ -9,9 +9,15 @@
 <VBox spacing="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.example.client.sendController" alignment="TOP_LEFT" style="-fx-padding: 20;">
 
-    <!-- Campo per destinatari -->
-    <Label text="Destinatari:" />
-    <TextField fx:id="toField" promptText="Inserisci gli indirizzi email separati da virgola" />
+    <!-- Campo per inserire un destinatario -->
+    <Label text="Destinatario:" />
+    <TextField fx:id="toField" promptText="Inserisci un indirizzo email" />
+    <Button text="Aggiungi Destinatario" onAction="#addRecipient" />
+    <Label text="(i destinatari in questo campo non sono ancora stati aggiunti e non riceveranno quindi la mail)" textFill="red"/>
+
+    <!-- Area di testo per mostrare la lista dei destinatari aggiunti -->
+    <Label text="Destinatari aggiunti:" />
+    <TextArea fx:id="recipientsList" editable="false" promptText="Destinatari verranno visualizzati qui" wrapText="true" />
 
     <!-- Campo per oggetto -->
     <Label text="Oggetto:" />
