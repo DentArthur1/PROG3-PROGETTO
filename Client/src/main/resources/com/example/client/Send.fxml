@@ -34,5 +34,5 @@
     <Button text="Indietro" onAction="#goBack" />
 
     <!-- Etichetta per mostrare errori o conferme -->
-    <Label fx:id="statusLabel" textFill="red" />
+    <Label fx:id="statusLabel" textFill="green" />
 </VBox>
