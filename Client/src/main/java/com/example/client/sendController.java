@@ -1,5 +1,6 @@
 package com.example.client;
 
+import com.example.client.modules.SessionBackup;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -22,6 +23,8 @@ public class sendController {
     private Label statusLabel; // messaggi di stato
     @FXML
     private TextArea recipientsList; // Area per la lista dei destinatari
+
+    public SessionBackup backup;
 
 
     // Aggiungi Destinatario
@@ -72,20 +75,26 @@ public class sendController {
     //Funzione per tornare alla schermata precendente
     @FXML
     public void goBack() {
-
         try {
-            // Carica il file FXML per la Home (o per una scena precedente)
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("Inbox.fxml")); // Sostituisci con il percorso giusto
-            // Carica la nuova scena
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("Inbox.fxml"));
             Scene inboxScene = new Scene(loader.load());
 
-            // Ottieni il Stage corrente (finestra)
-            Stage stage = (Stage) statusLabel.getScene().getWindow();
+            // Ottieni il controller associato alla nuova scena
+            InboxController controller = loader.getController();
 
-            // Imposta la nuova scena (sostituisce la scena corrente con la nuova)
+            // Verifica che il backup non sia null
+            if (backup == null) {
+                System.err.println("Errore: Il backup è null nel SendController.");
+            } else {
+                controller.access_session(backup);
+            }
+
+            // Cambia scena
+            Stage stage = (Stage) statusLabel.getScene().getWindow();
             stage.setScene(inboxScene);
-            stage.show(); // Mostra la nuova scena
+            stage.setTitle("Inbox");
         } catch (IOException e) {
             e.printStackTrace();
+        }
     }
-}}
+}

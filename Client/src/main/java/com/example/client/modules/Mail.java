@@ -5,32 +5,57 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+import java.time.LocalDate;
+
 public class Mail {
 
-    private final StringProperty recipient;
-    private final StringProperty subject;
+    private String sender;
+    private String subject;
+    private String[] receivers;
+    private LocalDate date;
     private final BooleanProperty selected;  // Proprietà per la selezione della checkbox
 
-    public Mail(String recipient, String subject) {
-        this.recipient = new SimpleStringProperty(recipient);
-        this.subject = new SimpleStringProperty(subject);
-        this.selected = new SimpleBooleanProperty(false);  // Impostato a false di default
+    public Mail(String recipient, String subject, LocalDate dat, String[] receivs) {
+        this.sender = recipient;
+        this.subject = subject;
+        this.date = dat;
+        this.receivers = receivs;
+        this.selected = new SimpleBooleanProperty(false);
     }
 
-    public String getRecipient() {
-        return recipient.get();
+    public String getSender() {
+
+        return sender;
     }
 
-    public StringProperty recipientProperty() {
-        return recipient;
+    public void setSender(String snd) {
+
+        this.sender = snd;
     }
 
     public String getSubject() {
-        return subject.get();
+
+        return subject;
     }
 
-    public StringProperty subjectProperty() {
-        return subject;
+    public void setSubject(String subject) {
+        this.subject = subject;
+
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public String[] getReceivers() {
+        return receivers;
+    }
+    public void setReceivers(String[] receivers) {
+        this.receivers = receivers;
     }
 
     public boolean isSelected() {
@@ -44,4 +69,5 @@ public class Mail {
     public void setSelected(boolean selected) {
         this.selected.set(selected);
     }
+
 }
