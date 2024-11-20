@@ -1,51 +1,45 @@
 package com.example.server.modules;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
+import java.time.LocalDate;
 
-public class Message implements Serializable {
-    private static final String SEPARATOR = "\\|\\|\\|###\\|\\|\\|"; // Separatore complesso
-    private int id;
+/**
+ * Classe per la gestione dei messaggi,
+ * TODO: da modificare per renderla conforme alla versione client
+ */
+public class Message {
+    private String id;
     private String sender;
+    private String title;
     private String content;
-    private List<String> recipients;
+    private String receiver;
+    private LocalDate date;
 
-    public Message(int id, String sender, String content, String recipients) {
+    public Message(String id, String sender, String title, String content, String receiver) {
         this.id = id;
         this.sender = sender;
+        this.title = title;
         this.content = content;
-        this.recipients = Arrays.asList(recipients.split(","));
+        this.receiver = receiver;
+        this.date = LocalDate.now();
     }
 
-    // Metodo statico per convertire una riga del file in un oggetto Message
+    /**
+     * TODO: da modificare per cambiare il separatore
+     * metodo provvisorio per la conversione di una riga di testo in un oggetto Message
+     * @param line
+     * @return : oggetto Message
+     */
     public static Message fromLine(String line) {
-        String[] parts = line.split(SEPARATOR, -1); // Usa -1 per includere tutti i segmenti
-        int id = Integer.parseInt(parts[0]);
-        return new Message(id, parts[1], parts[2], parts[3]);
+        String[] parts = line.split(";");
+        return new Message(parts[0], parts[1], parts[2], parts[3], parts[4]);
+    }
+
+    public String getReceiver() {
+        return receiver;
     }
 
     @Override
     public String toString() {
-        return "ID: " + id +
-                ", Mittente: " + sender +
-                ", Messaggio: \"" + content + "\"" +
-                ", Destinatari: " + recipients;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getSender() {
-        return sender;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public List<String> getRecipients() {
-        return recipients;
+        return id + ";" + sender + ";" + title + ";" + content + ";" + receiver;
     }
 }
