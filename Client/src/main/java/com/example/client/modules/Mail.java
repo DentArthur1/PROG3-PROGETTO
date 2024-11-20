@@ -1,27 +1,47 @@
 package com.example.client.modules;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 public class Mail {
-    private String recipient;
-    private String subject;
+
+    private final StringProperty recipient;
+    private final StringProperty subject;
+    private final BooleanProperty selected;  // Proprietà per la selezione della checkbox
 
     public Mail(String recipient, String subject) {
-        this.recipient = recipient;
-        this.subject = subject;
+        this.recipient = new SimpleStringProperty(recipient);
+        this.subject = new SimpleStringProperty(subject);
+        this.selected = new SimpleBooleanProperty(false);  // Impostato a false di default
     }
 
     public String getRecipient() {
+        return recipient.get();
+    }
+
+    public StringProperty recipientProperty() {
         return recipient;
     }
 
-    public void setRecipient(String recipient) {
-        this.recipient = recipient;
+    public String getSubject() {
+        return subject.get();
     }
 
-    public String getSubject() {
+    public StringProperty subjectProperty() {
         return subject;
     }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
+    public boolean isSelected() {
+        return selected.get();
+    }
+
+    public BooleanProperty selectedProperty() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected.set(selected);
     }
 }

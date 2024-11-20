@@ -6,11 +6,15 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.stage.Stage;
 import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
+
 import java.io.IOException;
-import java.util.Random;
-import javafx.beans.property.SimpleStringProperty;
 
 public class InboxController {
 
@@ -18,47 +22,55 @@ public class InboxController {
     private Label connectionStatus;
 
     @FXML
-    private TableView<Mail> emailTable;
-
-    @FXML
-    private TableColumn<Mail, String> recipientColumn;
-
-    @FXML
-    private TableColumn<Mail, String> subjectColumn;
+    private VBox emailListContainer;
 
     private ObservableList<Mail> emailList;
 
     @FXML
     public void initialize() {
-        // Initialize the TableView with random data
+        // Inizializza la lista delle email
         emailList = FXCollections.observableArrayList();
-        generateRandomEmails(50); // Generate 50 random emails
+        generateRandomEmails(50); // Genera 50 email casuali e aggiungi gli elementi alla lista visiva
 
-        // Bind the columns to the properties of the Mail object
-        recipientColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getRecipient()));
-        subjectColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSubject()));
-
-        // Set the items of the TableView to the ObservableList
-        emailTable.setItems(emailList);
-
-        // Impostare la larghezza delle colonne per l'espansione automatica
-        subjectColumn.prefWidthProperty().bind(emailTable.widthProperty().multiply(0.3)); // 30% della larghezza della TableView
-        recipientColumn.prefWidthProperty().bind(emailTable.widthProperty().multiply(0.3)); // 30% per recipient
-
-        // Impostare la politica di ridimensionamento per adattarsi al contenuto
-        emailTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        // Impostiamo gli elementi visivi per ogni email
+        for (Mail email : emailList) {
+            addEmailToView(email);
+        }
     }
 
     private void generateRandomEmails(int numEmails) {
-        Random random = new Random();
+        // Genera email casuali
         String[] subjects = {"Meeting Invitation", "Newsletter", "Job Offer", "Project Update", "Reminder"};
         String[] recipients = {"john@example.com", "jane@company.com", "admin@web.com", "user@domain.com"};
 
         for (int i = 0; i < numEmails; i++) {
-            String recipient = recipients[random.nextInt(recipients.length)];
-            String subject = subjects[random.nextInt(subjects.length)];
-            emailList.add(new Mail(recipient, subject));
+            String recipient = recipients[(int) (Math.random() * recipients.length)];
+            String subject = subjects[(int) (Math.random() * subjects.length)];
+            emailList.add(new Mail(recipient, subject));  // Aggiungi la nuova email
         }
+    }
+
+    private void addEmailToView(Mail email) {
+        HBox emailBox = new HBox(10);
+
+        CheckBox selectBox = new CheckBox();
+        selectBox.selectedProperty().bindBidirectional(email.selectedProperty());
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10); // Spazio orizzontale tra le colonne
+
+        Text recipientText = new Text(email.getRecipient());
+        recipientText.setFont(Font.font(14)); // Imposta il font più grande
+
+        Text subjectText = new Text(email.getSubject());
+        subjectText.setFont(Font.font(14)); // Imposta il font più grande
+
+        // Separa l'indirizzo email dall'oggetto
+        gridPane.add(recipientText, 0, 0);
+        gridPane.add(subjectText, 0, 1);
+
+        emailBox.getChildren().addAll(selectBox, gridPane);
+        emailListContainer.getChildren().add(emailBox);
     }
 
     @FXML
@@ -91,11 +103,19 @@ public class InboxController {
 
     @FXML
     protected void handleDelete() {
-        // Logic for deleting an email
-    }
+        // Rimuove le email selezionate
+        ObservableList<Mail> selectedEmails = FXCollections.observableArrayList();
+        for (Mail email : emailList) {
+            if (email.isSelected()) {
+                selectedEmails.add(email);
+            }
+        }
+        emailList.removeAll(selectedEmails);  // Rimuove le email selezionate
 
-    @FXML
-    protected void handleEmailClick() {
-        // Logic for handling email click events
+        // Aggiorna la vista della lista delle email
+        emailListContainer.getChildren().clear();
+        for (Mail email : emailList) {
+            addEmailToView(email);
+        }
     }
 }

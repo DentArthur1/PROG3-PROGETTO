@@ -26,17 +26,10 @@
 
     <!-- Center - Mail List and Message Viewer -->
     <center>
-        <VBox spacing="10" style="-fx-padding: 10;">
-            <!-- Mail List -->
-            <TableView fx:id="emailTable" onMouseClicked="#handleEmailClick">
-                <columns>
-                    <!-- Colonna per il destinatario con larghezza fissa -->
-                    <TableColumn fx:id="recipientColumn" text="Destinatario" prefWidth="200" />
-
-                    <!-- Colonna per il titolo che si espande automaticamente -->
-                    <TableColumn fx:id="subjectColumn" text="Titolo" />
-                </columns>
-            </TableView>
-        </VBox>
+        <ScrollPane fitToWidth="true" prefHeight="400" prefWidth="600">
+            <VBox fx:id="emailListContainer" spacing="10" style="-fx-padding: 10 20 10 10;" prefWidth="580">
+                <!-- Gli elementi email verranno aggiunti dinamicamente qui -->
+            </VBox>
+        </ScrollPane>
     </center>
 </BorderPane>
