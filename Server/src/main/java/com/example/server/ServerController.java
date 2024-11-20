@@ -1,44 +1,48 @@
 package com.example.server;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import com.example.server.modules.Message;
-
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.List;
 
 public class ServerController {
-    private static final String FILE_PATH = "src/main/resources/data.txt"; // Percorso del file dei messaggi
+    private static final int PORT = 8081; // Porta del server
+    private final MessageService messageService;
 
-    public static void main(String[] args) {
-        List<Message> messages = loadMessages();
-        if (messages.isEmpty()) {
-            System.out.println("Nessun messaggio trovato.");
-        } else {
-            System.out.println("Messaggi letti dal file:");
-            for (Message message : messages) {
-                System.out.println(message);
+    public ServerController() {
+        this.messageService = new MessageService();
+    }
+
+    public void startServer() {
+        System.out.println("Avvio del server sulla porta " + PORT);
+
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                handleClient(clientSocket);
             }
+        } catch (IOException e) {
+            System.err.println("Errore durante l'esecuzione del server: " + e.getMessage());
         }
     }
 
-    // Metodo per leggere i messaggi dal file
-    private static List<Message> loadMessages() {
-        List<Message> messages = new ArrayList<>();
-        File file = new File(FILE_PATH);
+    private void handleClient(Socket clientSocket) {
+        System.out.println("Connessione stabilita con il client: " + clientSocket.getInetAddress());
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))) {
 
-        if (!file.exists()) {
-            System.out.println("Il file non esiste: " + FILE_PATH);
-            return messages;
-        }
+            String receiverEmail = in.readLine(); // Leggi l'email del destinatario inviata dal client
+            List<Message> messages = messageService.getMessagesByReceiver(receiverEmail);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                messages.add(Message.fromLine(line));
+            for (Message message : messages) {
+                out.write(message.toString());
+                out.newLine();
             }
+            out.flush();
+
         } catch (IOException e) {
-            System.err.println("Errore durante la lettura del file: " + e.getMessage());
+            System.err.println("Errore nella comunicazione con il client: " + e.getMessage());
         }
-        return messages;
     }
 }
