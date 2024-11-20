@@ -2,6 +2,7 @@ package com.example.client;
 
 import com.example.client.modules.Mail;
 import com.example.client.modules.SessionBackup;
+import com.example.client.modules.Structures;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -42,7 +43,7 @@ public class LoginController {
             try {
                 // Carica il file FXML per la Home
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("Inbox.fxml"));
-                Scene homeScene = new Scene(loader.load());
+                Scene homeScene = new Scene(loader.load(), Structures.SCENE_WIDTH , Structures.SCENE_HEIGHT);
 
                 // Ottieni il Stage corrente (finestra)
                 Stage stage = (Stage) errorLabel.getScene().getWindow();

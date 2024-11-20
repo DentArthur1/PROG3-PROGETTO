@@ -13,7 +13,6 @@
     <Label text="Destinatario:" />
     <TextField fx:id="toField" promptText="Inserisci un indirizzo email" />
     <Button text="Aggiungi Destinatario" onAction="#addRecipient" />
-    <Label text="(i destinatari in questo campo non sono ancora stati aggiunti e non riceveranno quindi la mail)" textFill="red"/>
 
     <!-- Area di testo per mostrare la lista dei destinatari aggiunti -->
     <Label text="Destinatari aggiunti:" />
@@ -34,5 +33,7 @@
     <Button text="Indietro" onAction="#goBack" />
 
     <!-- Etichetta per mostrare errori o conferme -->
-    <Label fx:id="statusLabel" textFill="green" />
+    <Label fx:id="successLabel" textFill="green" />
+    <!-- Etichetta per mostrare errori o conferme -->
+    <Label fx:id="errorLabel" textFill="red" />
 </VBox>

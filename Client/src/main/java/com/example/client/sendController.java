@@ -1,6 +1,7 @@
 package com.example.client;
 
 import com.example.client.modules.SessionBackup;
+import com.example.client.modules.Structures;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -20,7 +21,9 @@ public class sendController {
     @FXML
     private TextArea bodyArea; // messaggio
     @FXML
-    private Label statusLabel; // messaggi di stato
+    private Label successLabel; // messaggi di stato
+    @FXML
+    private Label errorLabel;
     @FXML
     private TextArea recipientsList; // Area per la lista dei destinatari
 
@@ -39,7 +42,7 @@ public class sendController {
             // Cancella il campo per il prossimo inserimento
             toField.clear();
         } else {
-            statusLabel.setText("Errore: Indirizzo email non valido.");
+            errorLabel.setText("Errore: Indirizzo email non valido.");
         }
     }
 
@@ -52,12 +55,12 @@ public class sendController {
 
             // Controllo della correttezza degli input
             if (destinatari.isEmpty() || oggetto.isEmpty() || corpo.isEmpty()) {
-                statusLabel.setText("Errore: Tutti i campi devono essere compilati.");
+                errorLabel.setText("Errore: Tutti i campi devono essere compilati.");
                 return;
             }
 
             // Simula l'invio dell'email
-            statusLabel.setText("Email inviata con successo!");
+            successLabel.setText("Email inviata con successo!");
 
             // Pulisce i campi (opzionale)
             toField.clear();
@@ -75,26 +78,7 @@ public class sendController {
     //Funzione per tornare alla schermata precendente
     @FXML
     public void goBack() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("Inbox.fxml"));
-            Scene inboxScene = new Scene(loader.load());
-
-            // Ottieni il controller associato alla nuova scena
-            InboxController controller = loader.getController();
-
-            // Verifica che il backup non sia null
-            if (backup == null) {
-                System.err.println("Errore: Il backup è null nel SendController.");
-            } else {
-                controller.access_session(backup);
-            }
-
-            // Cambia scena
-            Stage stage = (Stage) statusLabel.getScene().getWindow();
-            stage.setScene(inboxScene);
-            stage.setTitle("Inbox");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        InboxController inbox_controller = Structures.change_scene("Inbox.fxml", (Stage) successLabel.getScene().getWindow(), getClass());
+        inbox_controller.access_session(backup);
     }
 }

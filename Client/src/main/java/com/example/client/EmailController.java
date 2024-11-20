@@ -2,6 +2,7 @@ package com.example.client;
 
 import com.example.client.modules.Mail;
 import com.example.client.modules.SessionBackup;
+import com.example.client.modules.Structures;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -52,40 +53,14 @@ public class EmailController {
     }
 
     public void handleBackToInbox(ActionEvent actionEvent) {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Inbox.fxml"));
-            Scene inboxScene = new Scene(fxmlLoader.load());
-
-            // Ottieni il controller associato alla nuova scena
-            InboxController controller = fxmlLoader.getController();
-
-            if (backup == null) {
-                System.err.println("Errore: Il backup è null in EmailController.");
-            } else {
-                controller.access_session(backup); // Ripristina il backup
-            }
-
-            // Cambia scena
-            Stage currentStage = (Stage) subjectLabel.getScene().getWindow();
-            currentStage.setScene(inboxScene);
-            currentStage.setTitle("Inbox");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        InboxController inbox_controller = Structures.change_scene("Inbox.fxml", (Stage) subjectLabel.getScene().getWindow(), getClass());
+        inbox_controller.access_session(backup);
     }
 
 
     public void handleReply(ActionEvent actionEvent) {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Send.fxml"));
-            Scene loginScene = new Scene(fxmlLoader.load());
-
-            Stage currentStage = (Stage) subjectLabel.getScene().getWindow();
-            currentStage.setScene(loginScene);
-            currentStage.setTitle("Send");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        sendController send_controller = Structures.change_scene("Send.fxml", (Stage) subjectLabel.getScene().getWindow(), getClass());
+        send_controller.backup = backup;
     }
 
     public void handleReplyAll(ActionEvent actionEvent) {

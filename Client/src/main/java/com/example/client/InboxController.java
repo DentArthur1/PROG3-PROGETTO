@@ -3,6 +3,7 @@ package com.example.client;
 
 import com.example.client.modules.Mail;
 import com.example.client.modules.SessionBackup;
+import com.example.client.modules.Structures;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -171,8 +172,8 @@ public class InboxController {
         gridPane.add(recipientText, 0, 0);
         gridPane.add(subjectText, 0, 1);
 
-        emailBox.getChildren().addAll(selectBox, gridPane);
-        emailListContainer.getChildren().add(emailBox);
+        //emailBox.getChildren().addAll(selectBox, gridPane);
+        //emailListContainer.getChildren().add(emailBox);
     }
 
     @FXML
@@ -181,29 +182,9 @@ public class InboxController {
         Mail selectedMail = emailTable.getSelectionModel().getSelectedItem();
 
         if (selectedMail != null) {
-            try {
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Email.fxml"));
-                Scene emailDetailsScene = new Scene(fxmlLoader.load());
-
-                // Ottieni il controller associato alla nuova scena
-                EmailController controller = fxmlLoader.getController();
-
-                // Passa l'email selezionata e il backup
-                controller.set_email(selectedMail);
-
-                if (backup == null) {
-                    System.err.println("Errore: Il backup è null in InboxController.");
-                } else {
-                    controller.backup = backup; // Passa il backup
-                }
-
-                // Cambia scena
-                Stage currentStage = (Stage) emailTable.getScene().getWindow();
-                currentStage.setScene(emailDetailsScene);
-                currentStage.setTitle("Dettagli Email");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            EmailController email_controller = Structures.change_scene("Email.fxml", (Stage) emailTable.getScene().getWindow(), getClass());
+            email_controller.set_email(selectedMail);
+            email_controller.backup = backup; // Passa il backup
         } else {
             System.err.println("Errore: Nessuna email selezionata.");
         }
@@ -211,40 +192,13 @@ public class InboxController {
 
     @FXML
     protected void handleLogout() {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Login.fxml"));
-            Scene loginScene = new Scene(fxmlLoader.load());
-
-            Stage currentStage = (Stage) connectionStatus.getScene().getWindow();
-            currentStage.setScene(loginScene);
-            currentStage.setTitle("Login");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Structures.change_scene("Login.fxml",(Stage) emailTable.getScene().getWindow(), getClass());
     }
 
     @FXML
     protected void handleCompose() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("Send.fxml"));
-            Scene sendScene = new Scene(loader.load());
-
-            // Passa il backup al nuovo controller
-            sendController controller = loader.getController();
-
-            if (backup == null) {
-                System.err.println("Errore: Il backup è null in InboxController.");
-            } else {
-                controller.backup = backup;
-            }
-
-            // Cambia scena
-            Stage stage = (Stage) connectionStatus.getScene().getWindow();
-            stage.setScene(sendScene);
-            stage.setTitle("Scrivi");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        sendController send_controller = Structures.change_scene("Send.fxml", (Stage) emailTable.getScene().getWindow(), getClass());
+        send_controller.backup = backup;
     }
 
     @FXML
@@ -259,7 +213,7 @@ public class InboxController {
         emailList.removeAll(selectedEmails);  // Rimuove le email selezionate
 
         // Aggiorna la vista della lista delle email
-        emailListContainer.getChildren().clear();
+        //emailListContainer.getChildren().clear();
         for (Mail email : emailList) {
             addEmailToView(email);
         }
