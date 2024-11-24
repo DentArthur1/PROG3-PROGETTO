@@ -12,11 +12,11 @@
     <!-- Campo per inserire un destinatario -->
     <Label text="Destinatario:" />
     <TextField fx:id="toField" promptText="Inserisci un indirizzo email" />
-    <Button text="Aggiungi Destinatario" onAction="#addRecipient" />
+    <Button text="Aggiungi Destinatario" onAction="#addReceiver" />
 
     <!-- Area di testo per mostrare la lista dei destinatari aggiunti -->
     <Label text="Destinatari aggiunti:" />
-    <TextArea fx:id="recipientsList" editable="false" promptText="Destinatari verranno visualizzati qui" wrapText="true" />
+    <TextArea fx:id="receiversList" editable="false" promptText="Destinatari verranno visualizzati qui" wrapText="true" />
 
     <!-- Campo per oggetto -->
     <Label text="Oggetto:" />

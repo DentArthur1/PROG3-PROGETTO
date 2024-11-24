@@ -8,7 +8,7 @@ import javafx.beans.property.StringProperty;
 import java.time.LocalDate;
 
 public class Mail {
-
+    //Classe dati per le Mail
     private String sender;
     private String subject;
     private String[] receivers;
@@ -58,6 +58,8 @@ public class Mail {
         this.receivers = receivers;
     }
 
+
+    //Funzioni per la gestione della funzione "Selezione Mail"
     public boolean isSelected() {
         return selected.get();
     }

@@ -4,31 +4,33 @@ package com.example.client.modules;
 import javafx.collections.ObservableList;
 
 public class SessionBackup {
-
+    //Classe per gestire il backup dei dati del client,
+    //utilizzabile in caso di perdita di connessione o per un utilizzo del servizio offline
 
     private ObservableList<Mail> emailBackup;
     private String userEmailBackup;
-    public boolean sessionStarted;
-
+    private boolean sessionStarted;
 
     public SessionBackup(String userEmailBackup) {
         this.userEmailBackup = userEmailBackup;
     }
 
+    public void startSession(ObservableList<Mail> emailBackup) {
+        //Metodo per iniziare una nuova sessione Inbox con le email date come parametro
+        setEmailBackup(emailBackup);
+        sessionStarted = true;
+    }
+
     public ObservableList<Mail> getEmailBackup() {
         return emailBackup;
     }
-    public void setEmailBackup(ObservableList<Mail> emailBackup) {
+    private void setEmailBackup(ObservableList<Mail> emailBackup) {
         this.emailBackup = emailBackup;
     }
 
     public String getUserEmailBackup() {
         return userEmailBackup;
     }
-    public void setUserEmailBackup(String email){
-        this.userEmailBackup = email;
-    }
-
 
     public boolean isSessionStarted() {
         return sessionStarted;

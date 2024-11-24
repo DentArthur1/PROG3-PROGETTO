@@ -5,17 +5,12 @@ import com.example.client.modules.SessionBackup;
 import com.example.client.modules.Structures;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-
-import java.io.IOException;
 
 
 public class EmailController {
+    //Classe controllore email per gestire l'operazione di visualizzazione mail
 
     public Mail selected_email;
 
@@ -35,17 +30,20 @@ public class EmailController {
 
 
     public void set_email(Mail example){
+        //Funzione usata per selezionare l'email da visualizzare
         this.selected_email = example;
         fill_data(example);
     }
 
     public void fill_receivers(Mail example){
+        //Ottiene i destinatari dai dati della classe mail e li mostra a schermo
         String[] receivs = example.getReceivers();
         String all_Receivs = String.join(", ", receivs);
         receiverLabel.setText(all_Receivs);
     }
 
     public void fill_data(Mail example){
+        //Riempe le caselle con i dati della mail
         dateLabel.setText(example.getDate().toString());
         subjectLabel.setText(example.getSubject());
         senderLabel.setText(example.getSender());
@@ -53,12 +51,12 @@ public class EmailController {
     }
 
     public void handleBackToInbox(ActionEvent actionEvent) {
-        InboxController inbox_controller = Structures.change_scene("Inbox.fxml", (Stage) subjectLabel.getScene().getWindow(), getClass());
-        inbox_controller.access_session(backup);
+        Structures.go_to_inbox((Stage) subjectLabel.getScene().getWindow(),getClass(), backup);
     }
 
 
     public void handleReply(ActionEvent actionEvent) {
+        //Accede alla sezione Send
         sendController send_controller = Structures.change_scene("Send.fxml", (Stage) subjectLabel.getScene().getWindow(), getClass());
         send_controller.backup = backup;
     }

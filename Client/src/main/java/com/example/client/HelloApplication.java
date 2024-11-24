@@ -2,8 +2,6 @@ package com.example.client;
 
 import javafx.application.Application;
 import com.example.client.modules.Structures;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.io.IOException;
 

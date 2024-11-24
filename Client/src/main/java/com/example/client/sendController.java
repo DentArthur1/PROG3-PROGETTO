@@ -3,16 +3,13 @@ package com.example.client;
 import com.example.client.modules.SessionBackup;
 import com.example.client.modules.Structures;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
 public class sendController {
+    //Classe controllore per gestire l'operazione di invio messaggi
 
     @FXML
     private TextField toField; // destinatari
@@ -23,22 +20,20 @@ public class sendController {
     @FXML
     private Label successLabel; // messaggi di stato
     @FXML
-    private Label errorLabel;
+    private Label errorLabel; // etichetta di errore
     @FXML
-    private TextArea recipientsList; // Area per la lista dei destinatari
+    private TextArea receiversList; // Area per la lista dei destinatari
 
     public SessionBackup backup;
 
-
-    // Aggiungi Destinatario
     @FXML
-    protected void addRecipient() {
+    protected void addReceiver() {
         String destinatario = toField.getText().trim();
 
         // Verifica se il campo del destinatario non è vuoto e se l'indirizzo è valido
-        if (!destinatario.isEmpty() && verificaDestinatario(destinatario)) {
+        if (!destinatario.isEmpty() && Structures.isValidEmail(destinatario)) {
             // Aggiungi il destinatario alla lista visibile
-            recipientsList.appendText(destinatario + "\n");
+            receiversList.appendText(destinatario + "\n");
             // Cancella il campo per il prossimo inserimento
             toField.clear();
         } else {
@@ -46,39 +41,31 @@ public class sendController {
         }
     }
 
-// pulsante "Invia"
-        @FXML
-        protected void sendEmail() {
-            String oggetto = subjectField.getText().trim();
-            String corpo = bodyArea.getText().trim();
-            String destinatari = recipientsList.getText().trim(); // Legge tutti i destinatari
+    @FXML
+    protected void sendEmail() {
+        String oggetto = subjectField.getText().trim();
+        String corpo = bodyArea.getText().trim();
+        String destinatari = receiversList.getText().trim(); // Legge tutti i destinatari
 
-            // Controllo della correttezza degli input
-            if (destinatari.isEmpty() || oggetto.isEmpty() || corpo.isEmpty()) {
-                errorLabel.setText("Errore: Tutti i campi devono essere compilati.");
-                return;
-            }
-
-            // Simula l'invio dell'email
-            successLabel.setText("Email inviata con successo!");
-
-            // Pulisce i campi (opzionale)
-            toField.clear();
-            recipientsList.clear();
-            subjectField.clear();
-            bodyArea.clear();
+        // Controllo della correttezza degli input
+        if (destinatari.isEmpty() || oggetto.isEmpty() || corpo.isEmpty()) {
+            errorLabel.setText("Errore: Tutti i campi devono essere compilati.");
+            return;
         }
 
-    // Metodo per verificare la sintassi di un indirizzo email
-    private boolean verificaDestinatario(String destinatario) {
-        String regexEmail = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
-        return destinatario.matches(regexEmail);
+        // Simula l'invio dell'email
+        successLabel.setText("Email inviata con successo!");
+
+        // Pulisce i campi (opzionale)
+        toField.clear();
+        receiversList.clear();
+        subjectField.clear();
+        bodyArea.clear();
     }
 
-    //Funzione per tornare alla schermata precendente
+    //Funzione per tornare alla sezione Inbox
     @FXML
     public void goBack() {
-        InboxController inbox_controller = Structures.change_scene("Inbox.fxml", (Stage) successLabel.getScene().getWindow(), getClass());
-        inbox_controller.access_session(backup);
+        Structures.go_to_inbox((Stage) successLabel.getScene().getWindow(),getClass(), backup);
     }
 }
