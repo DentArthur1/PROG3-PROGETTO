@@ -11,16 +11,16 @@ public class Message {
     private String sender;
     private String title;
     private String content;
-    private String receiver;
+    private String[] receivers;
     private LocalDate date;
 
-    public Message(String id, String sender, String title, String content, String receiver) {
+    public Message(String id, String sender, String title, String content, String[] receivers, LocalDate date) {
         this.id = id;
         this.sender = sender;
         this.title = title;
         this.content = content;
-        this.receiver = receiver;
-        this.date = LocalDate.now();
+        this.receivers = receivers;
+        this.date = date;
     }
 
     /**
@@ -31,15 +31,16 @@ public class Message {
      */
     public static Message fromLine(String line) {
         String[] parts = line.split("§");
-        return new Message(parts[0], parts[1], parts[2], parts[3], parts[4]);
+        String[] receivs = parts[4].split(",");
+        return new Message(parts[0], parts[1], parts[2], parts[3], receivs, LocalDate.parse(parts[5]));
     }
 
-    public String getReceiver() {
-        return receiver;
+    public String[] receivers() {
+        return this.receivers;
     }
 
     @Override
     public String toString() {
-        return id + ";" + sender + ";" + title + ";" + content + ";" + receiver;
+        return id + "§" + sender + "$" + title + "$" + content + "$" + String.join("", receivers) + "$" + date;
     }
 }
