@@ -2,16 +2,7 @@ package com.example.server.modules;
 
 import java.time.LocalDateTime;
 
-/**
- * Classe per la gestione dei messaggi,
- * contiene i metodi per la conversione di un messaggio in una stringa e viceversa
- * @param id : id del messaggio
- * @param sender : mittente del messaggio
- * @param title : oggetto del messaggio
- * @param content : contenuto del messaggio
- * @param receivers : array di destinatari del messaggio
- * @param date : data di invio del messaggio con ora
- */
+
 public class Message {
     private String id;
     private String sender;
@@ -19,6 +10,17 @@ public class Message {
     private String content;
     private String[] receivers;
     private LocalDateTime date;
+
+    /**
+     * Classe per la gestione dei messaggi,
+     * contiene i metodi per la conversione di un messaggio in una stringa e viceversa
+     * @param id : id del messaggio
+     * @param sender : mittente del messaggio
+     * @param title : oggetto del messaggio
+     * @param content : contenuto del messaggio
+     * @param receivers : array di destinatari del messaggio
+     * @param date : data di invio del messaggio con ora
+     */
 
     public Message(String id, String sender, String title, String content, String[] receivers, LocalDateTime date) {
         this.id = id;
