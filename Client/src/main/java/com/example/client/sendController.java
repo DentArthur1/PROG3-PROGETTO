@@ -11,10 +11,10 @@ import javafx.stage.Stage;
 
 import java.net.Socket;
 import java.io.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class sendController {
-    //Classe controllore per gestire l'operazione di invio messaggi
+    /** Classe controllore per gestire l'operazione di invio messaggi */
 
     @FXML
     private TextField toField; // destinatari
@@ -35,7 +35,7 @@ public class sendController {
     protected void addReceiver() {
         String destinatario = toField.getText().trim();
 
-        // Verifica se il campo del destinatario non è vuoto e se l'indirizzo è valido
+        /** Verifica se il campo del destinatario non è vuoto e se l'indirizzo è valido */
         if (!destinatario.isEmpty() && Structures.isValidEmail(destinatario)) {
             // Aggiungi il destinatario alla lista visibile
             receiversList.appendText(destinatario + "\n");
@@ -51,16 +51,16 @@ public class sendController {
         String oggetto = subjectField.getText().trim();
         String corpo = bodyArea.getText().trim();
         String[] destinatari = receiversList.getText().trim().split(","); // Legge tutti i destinatari
-        LocalDate date = LocalDate.now();
-        Mail new_mail = new Mail(backup.getUserEmailBackup(), oggetto, date, destinatari, corpo);
+        LocalDateTime date = LocalDateTime.now();
+        Mail new_mail = new Mail("id",backup.getUserEmailBackup(), oggetto, corpo, destinatari, date);
 
-        // Controllo della correttezza degli input
+        /** Controllo della correttezza degli input */
         if (destinatari.length == 0 || oggetto.isEmpty() || corpo.isEmpty()) {
             errorLabel.setText("Errore: Tutti i campi devono essere compilati.");
             return;
         }
 
-        // Scrive la mail sul socket
+        /** Scrive la mail sul socket */
         try (Socket clientSocket = new Socket("localhost",Structures.PORT)) {
             PrintWriter output_stream = new PrintWriter(clientSocket.getOutputStream(), true);
             output_stream.println(new_mail.toString());
@@ -68,14 +68,14 @@ public class sendController {
             System.err.println("Errore durante l'esecuzione del server: " + e.getMessage());
         }
 
-        // Pulisce i campi (opzionale)
+        /** Pulisce i campi (opzionale) */
         toField.clear();
         receiversList.clear();
         subjectField.clear();
         bodyArea.clear();
     }
 
-    //Funzione per tornare alla sezione Inbox
+    /** Funzione per tornare alla sezione Inbox */
     @FXML
     public void goBack() {
         Structures.go_to_inbox((Stage) successLabel.getScene().getWindow(),getClass(), backup);

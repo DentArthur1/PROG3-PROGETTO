@@ -1,10 +1,16 @@
 package com.example.server.modules;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Classe per la gestione dei messaggi,
- * TODO: da modificare per renderla conforme alla versione client
+ * contiene i metodi per la conversione di un messaggio in una stringa e viceversa
+ * @param id : id del messaggio
+ * @param sender : mittente del messaggio
+ * @param title : oggetto del messaggio
+ * @param content : contenuto del messaggio
+ * @param receivers : array di destinatari del messaggio
+ * @param date : data di invio del messaggio con ora
  */
 public class Message {
     private String id;
@@ -12,9 +18,9 @@ public class Message {
     private String title;
     private String content;
     private String[] receivers;
-    private LocalDate date;
+    private LocalDateTime date;
 
-    public Message(String id, String sender, String title, String content, String[] receivers, LocalDate date) {
+    public Message(String id, String sender, String title, String content, String[] receivers, LocalDateTime date) {
         this.id = id;
         this.sender = sender;
         this.title = title;
@@ -24,15 +30,15 @@ public class Message {
     }
 
     /**
-     * TODO: da modificare per cambiare il separatore
-     * metodo provvisorio per la conversione di una riga di testo in un oggetto Message
+     *
+     * Metodo per la conversione di una riga di testo in un oggetto Message
      * @param line
      * @return : oggetto Message
      */
     public static Message fromLine(String line) {
         String[] parts = line.split("§");
         String[] receivs = parts[4].split(",");
-        return new Message(parts[0], parts[1], parts[2], parts[3], receivs, LocalDate.parse(parts[5]));
+        return new Message(parts[0], parts[1], parts[2], parts[3], receivs, LocalDateTime.parse(parts[5]));
     }
 
     public String[] receivers() {

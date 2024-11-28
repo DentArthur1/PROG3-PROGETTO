@@ -16,7 +16,10 @@ public class MessageService {
     public void MessageService(){
 
     }
-
+    /**
+     *  Metodo per caricare i messaggi dal file in memoria
+     * @return lista di messaggi
+     */
     public List<Message> loadMessages() {
         List<Message> messages = new ArrayList<>();
         File file = new File(Structures.FILE_PATH);

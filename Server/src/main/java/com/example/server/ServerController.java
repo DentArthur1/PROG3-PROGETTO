@@ -6,9 +6,15 @@ import java.net.Socket;
 
 import com.example.server.modules.Message;
 import com.example.server.modules.Structures;
-
+/**
+ * Classe che gestisce il server, utilizza i socket per comunicare con i client
+ */
 public class ServerController {
-
+    /**
+     * Metodo per avviare il server sulla porta 8081, mandando in esecuzione il metodo saveMessageFromClient (ultimo metodo in questo file)
+     * per salvare i messaggi ricevuti
+     *
+     */
     public void startServer() {
         System.out.println("Avvio del server sulla porta " + Structures.PORT);
 
@@ -21,6 +27,13 @@ public class ServerController {
             System.err.println("Errore durante l'esecuzione del server: " + e.getMessage());
         }
     }
+
+    /**
+     * Metodo per ottenere i dati dal client, in questo caso l'email del destinatario con tutti i dati della mail dall'input stream
+     * @param clientSocket
+     * @return
+     * @throws IOException
+     */
     public String getDataFromClient(Socket clientSocket) throws IOException {
         System.out.println("Connessione stabilita con il client: " + clientSocket.getInetAddress());
         String data = "";
@@ -36,6 +49,11 @@ public class ServerController {
             throw new IOException("Failed getting data from client");
         }
     }
+    /**
+     * Metodo per salvare i messaggi ricevuti dal client nel file data.txt
+     * @param message
+     * @throws IOException
+     */
     public void saveMessage(Message message) throws IOException {
         File file = new File(Structures.FILE_PATH);
         if (!file.exists()) {
@@ -49,6 +67,11 @@ public class ServerController {
         }
     }
 
+    /**
+     * Metodo per salvare i messaggi ricevuti dal client, vengono parsificati
+     * @param clientSocket
+     * @throws IOException
+     */
     public void saveMessageFromClient(Socket clientSocket) throws IOException{
         String message = getDataFromClient(clientSocket);
         Message parsed_message = Message.fromLine(message);
