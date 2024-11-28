@@ -23,6 +23,7 @@ public class Structures {
     public static final int SCENE_WIDTH = 500;
     public static final int SCENE_HEIGHT = 500;
     public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+    public static final int PORT = 8081; // Porta del server
 
     public static <T> T change_scene(String new_scene_fxml, Stage current_stage,  Class<?> current_class){
         //Metodo utilizzato per cambiare scena e ritorna l'istanza del nuovo controller

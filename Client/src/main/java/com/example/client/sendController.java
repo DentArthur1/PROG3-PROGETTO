@@ -8,6 +8,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+import java.net.Socket;
+import java.io.*;
+
 public class sendController {
     //Classe controllore per gestire l'operazione di invio messaggi
 
@@ -52,9 +55,13 @@ public class sendController {
             errorLabel.setText("Errore: Tutti i campi devono essere compilati.");
             return;
         }
-
-        // Simula l'invio dell'email
-        successLabel.setText("Email inviata con successo!");
+        // Scrive la mail sul socket
+        try (Socket clientSocket = new Socket("localhost",Structures.PORT)) {
+            PrintWriter output_stream = new PrintWriter(clientSocket.getOutputStream(), true);
+            output_stream.println();
+        } catch (IOException e) {
+            System.err.println("Errore durante l'esecuzione del server: " + e.getMessage());
+        }
 
         // Pulisce i campi (opzionale)
         toField.clear();
