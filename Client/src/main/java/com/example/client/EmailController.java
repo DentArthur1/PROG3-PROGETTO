@@ -45,7 +45,7 @@ public class EmailController {
     public void fill_data(Mail example){
         //Riempe le caselle con i dati della mail
         dateLabel.setText(example.getDate().toString());
-        subjectLabel.setText(example.getSubject());
+        subjectLabel.setText(example.getTitle());
         senderLabel.setText(example.getSender());
         fill_receivers(example);
     }

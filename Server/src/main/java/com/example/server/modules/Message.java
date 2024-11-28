@@ -41,6 +41,6 @@ public class Message {
 
     @Override
     public String toString() {
-        return id + "§" + sender + "$" + title + "$" + content + "$" + String.join("", receivers) + "$" + date;
+        return id + "§" + sender + "§" + title + "§" + content + "§" + String.join("", receivers) + "§" + date;
     }
 }

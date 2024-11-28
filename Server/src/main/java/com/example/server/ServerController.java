@@ -3,26 +3,19 @@ package com.example.server;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+
+import com.example.server.modules.Message;
 import com.example.server.modules.Structures;
 
 public class ServerController {
 
     public void startServer() {
         System.out.println("Avvio del server sulla porta " + Structures.PORT);
-        /**
-         * Documentazione socket:
-         * accept() Accetta una connessione in entrata, è un metodo della classe ServerSocket
-         * hanleClient() chiama il metodo più in basso, che si occupa di gestire la comunicazione con il client
-         */
-        /**
-         * Documentazione socket:
-         * getInputStream() Restituisce un flusso di input per leggere i dati inviati dal client
-         * getOutputStream() Restituisce un flusso di output per inviare i dati al client
-         */
+
         try (ServerSocket serverSocket = new ServerSocket(Structures.PORT)) {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                getDataFromClient(clientSocket);
+                saveMessageFromClient(clientSocket);
             }
         } catch (IOException e) {
             System.err.println("Errore durante l'esecuzione del server: " + e.getMessage());
@@ -42,5 +35,23 @@ public class ServerController {
         } else {
             throw new IOException("Failed getting data from client");
         }
+    }
+    public void saveMessage(Message message) throws IOException {
+        File file = new File(Structures.FILE_PATH);
+        if (!file.exists()) {
+            throw new IOException("File does not exists "+ Structures.FILE_PATH);
+        }
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+            writer.write(message.toString());
+            writer.newLine();
+        } catch (IOException e) {
+            System.err.println("Errore durante la scrittura del file: " + e.getMessage());
+        }
+    }
+
+    public void saveMessageFromClient(Socket clientSocket) throws IOException{
+        String message = getDataFromClient(clientSocket);
+        Message parsed_message = Message.fromLine(message);
+        saveMessage(parsed_message);
     }
 }

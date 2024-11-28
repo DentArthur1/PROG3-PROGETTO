@@ -2,24 +2,24 @@ package com.example.client.modules;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 
 import java.time.LocalDate;
 
 public class Mail {
     //Classe dati per le Mail
     private String sender;
-    private String subject;
+    private String title;
     private String[] receivers;
+    private String content;
     private LocalDate date;
     private final BooleanProperty selected;  // Proprietà per la selezione della checkbox
 
-    public Mail(String recipient, String subject, LocalDate dat, String[] receivs) {
-        this.sender = recipient;
-        this.subject = subject;
+    public Mail(String sender, String title, LocalDate dat, String[] receivs, String content) {
+        this.sender = sender;
+        this.title = title;
         this.date = dat;
         this.receivers = receivs;
+        this.content = content;
         this.selected = new SimpleBooleanProperty(false);
     }
 
@@ -33,13 +33,13 @@ public class Mail {
         this.sender = snd;
     }
 
-    public String getSubject() {
+    public String getTitle() {
 
-        return subject;
+        return title;
     }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
+    public void setTitle(String title) {
+        this.title = title;
 
     }
 
@@ -58,6 +58,10 @@ public class Mail {
         this.receivers = receivers;
     }
 
+    @Override
+    public String toString() {
+        return "id" + "§" + sender + "§" + title + "§" + content + "§" + String.join("", receivers) + "§" + date;
+    }
 
     //Funzioni per la gestione della funzione "Selezione Mail"
     public boolean isSelected() {

@@ -1,5 +1,6 @@
 package com.example.client;
 
+import com.example.client.modules.Mail;
 import com.example.client.modules.SessionBackup;
 import com.example.client.modules.Structures;
 import javafx.fxml.FXML;
@@ -10,6 +11,7 @@ import javafx.stage.Stage;
 
 import java.net.Socket;
 import java.io.*;
+import java.time.LocalDate;
 
 public class sendController {
     //Classe controllore per gestire l'operazione di invio messaggi
@@ -48,17 +50,20 @@ public class sendController {
     protected void sendEmail() {
         String oggetto = subjectField.getText().trim();
         String corpo = bodyArea.getText().trim();
-        String destinatari = receiversList.getText().trim(); // Legge tutti i destinatari
+        String[] destinatari = receiversList.getText().trim().split(","); // Legge tutti i destinatari
+        LocalDate date = LocalDate.now();
+        Mail new_mail = new Mail(backup.getUserEmailBackup(), oggetto, date, destinatari, corpo);
 
         // Controllo della correttezza degli input
-        if (destinatari.isEmpty() || oggetto.isEmpty() || corpo.isEmpty()) {
+        if (destinatari.length == 0 || oggetto.isEmpty() || corpo.isEmpty()) {
             errorLabel.setText("Errore: Tutti i campi devono essere compilati.");
             return;
         }
+
         // Scrive la mail sul socket
         try (Socket clientSocket = new Socket("localhost",Structures.PORT)) {
             PrintWriter output_stream = new PrintWriter(clientSocket.getOutputStream(), true);
-            output_stream.println();
+            output_stream.println(new_mail.toString());
         } catch (IOException e) {
             System.err.println("Errore durante l'esecuzione del server: " + e.getMessage());
         }

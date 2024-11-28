@@ -47,7 +47,7 @@ public class InboxController {
 
         // Configura le altre colonne
         receiversColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSender()));
-        subjectColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSubject()));
+        subjectColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
     }
 
     // Metodo per creare una cella con checkbox
@@ -88,7 +88,7 @@ public class InboxController {
         }
         //Rendo le email visibili a schermo
         receiversColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSender()));
-        subjectColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSubject()));
+        subjectColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
         emailTable.setItems(emailList);
     }
 
@@ -105,7 +105,7 @@ public class InboxController {
         Text recipientText = new Text(email.getSender());
         recipientText.setFont(Font.font(14)); // Imposta il font più grande
 
-        Text subjectText = new Text(email.getSubject());
+        Text subjectText = new Text(email.getTitle());
         subjectText.setFont(Font.font(14)); // Imposta il font più grande
         // Separa l'indirizzo email dall'oggetto
         gridPane.add(recipientText, 0, 0);

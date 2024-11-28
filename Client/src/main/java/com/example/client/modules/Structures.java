@@ -83,7 +83,7 @@ public class Structures {
             // Convertire la lista dei destinatari selezionati in un array
             String[] new_recipients = selectedRecipients.toArray(new String[0]);
             // Creare una nuova email e aggiungerla alla lista
-            mails.add(new Mail(sender, subject, date_prova, new_recipients));
+            mails.add(new Mail(sender, subject, date_prova, new_recipients, "negus"));
         }
         return mails;
     }
