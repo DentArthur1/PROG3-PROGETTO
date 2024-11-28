@@ -30,7 +30,7 @@ public class Message {
      * @return : oggetto Message
      */
     public static Message fromLine(String line) {
-        String[] parts = line.split(";");
+        String[] parts = line.split("§");
         return new Message(parts[0], parts[1], parts[2], parts[3], parts[4]);
     }
 
