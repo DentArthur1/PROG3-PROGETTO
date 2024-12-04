@@ -87,7 +87,7 @@ public class InboxController {
         if (!sessionBackup.isSessionStarted()) {
             //La sessione non è ancora iniziata(è stata creata la classe in Login)
             backup = sessionBackup;
-            emailList = Structures.generateRandomEmails(50);
+            emailList = get_new_emails();
             sessionBackup.startSession(emailList);
             set_user_email(backup.getUserEmailBackup());
         } else {
@@ -104,24 +104,40 @@ public class InboxController {
     private ObservableList<Mail> get_new_emails() {
         /** Funzione per ottenere le nuove email dal server da mostrare a schermo */
         ObservableList<Mail> parsed_mails = FXCollections.observableArrayList();
-        String[] mails = new String[0];
+
         try (Socket clientSocket = new Socket("localhost", Structures.PORT)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            String data = in.readLine();
-            mails = data.split("\n");
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            // Invia la richiesta "Gimme" al server
+            out.println("Gimme");
+
+            // Variabile per memorizzare la risposta del server
+            String data = null;
+
+            // Attende la risposta del server finché non riceve una risposta non null e non vuota
+            while (data == null || data.isEmpty()) {
+                data = in.readLine();
+            }
+
+            // Elabora le email ricevute solo se la risposta non è null o vuota
+            String[] mails = data.split("§§§");
+
+            // Per ogni mail nell'array di mail non-parsed
+            for (String mail : mails) {
+                String[] parts = mail.split("§");
+                String[] receivs = parts[4].split(",");
+                Mail new_mail = new Mail(parts[0], parts[1], parts[2], parts[3], receivs, LocalDateTime.parse(parts[5]));
+                parsed_mails.add(new_mail);
+            }
         } catch (IOException e) {
             System.err.println("Errore durante l'ottenimento delle mail dal server: " + e.getMessage());
         }
-        //Per ogni mail nell'array di mail not-parsed
-        for (String mail : mails) {
-            //RIPETIZIONE FUNZIONE FROMLINE
-            String[] parts = mail.split("§");
-            String[] receivs = parts[4].split(",");
-            Mail new_mail = new Mail(parts[0], parts[1], parts[2], parts[3], receivs, LocalDateTime.parse(parts[5]));
-            parsed_mails.add(new_mail);
-        }
+
         return parsed_mails;
     }
+
+
     private void addEmailToView(Mail email) {
         /** Rende visibile la mail i-esima */
         HBox emailBox = new HBox(10);

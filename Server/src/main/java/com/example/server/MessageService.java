@@ -3,9 +3,7 @@ package com.example.server;
 import com.example.server.modules.Message;
 import com.example.server.modules.Structures;
 import java.io.*;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class MessageService {
     /**
@@ -20,8 +18,8 @@ public class MessageService {
      *  Metodo per caricare i messaggi dal file in memoria
      * @return lista di messaggi
      */
-    public List<Message> loadMessages() {
-        List<Message> messages = new ArrayList<>();
+    public ArrayList<Message> loadMessages() {
+        ArrayList<Message> messages = new ArrayList<>();
         File file = new File(Structures.FILE_PATH);
 
         if (!file.exists()) {
@@ -45,11 +43,13 @@ public class MessageService {
      *
      */
     public List<Message> getMessagesByReceiver(String receiver) {
-        List<Message> allMessages = loadMessages();
-        List<Message> filteredMessages = new ArrayList<>();
+        ArrayList<Message> allMessages = loadMessages();
+        ArrayList<Message> filteredMessages = new ArrayList<>();
         for (Message message : allMessages) {
-            if (message.receivers().equals(receiver)) {
-                filteredMessages.add(message);
+            for (String msg_receiver: message.receivers()){
+                if (msg_receiver.equals(receiver)){
+                    filteredMessages.add(message);
+                }
             }
         }
         return filteredMessages;
