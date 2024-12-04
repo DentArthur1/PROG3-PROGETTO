@@ -9,6 +9,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+//import java.io.PrintWriter;
 import java.net.Socket;
 import java.io.*;
 import java.time.LocalDateTime;
@@ -43,6 +45,7 @@ public class sendController {
             toField.clear();
         } else {
             errorLabel.setText("Errore: Indirizzo email non valido.");
+            successLabel.setText(""); // Cancella eventuali successi precedenti
         }
     }
 
@@ -52,11 +55,12 @@ public class sendController {
         String corpo = bodyArea.getText().trim();
         String[] destinatari = receiversList.getText().trim().split(","); // Legge tutti i destinatari
         LocalDateTime date = LocalDateTime.now();
-        Mail new_mail = new Mail("id",backup.getUserEmailBackup(), oggetto, corpo, destinatari, date);
+        Mail new_mail = new Mail("id", backup.getUserEmailBackup(), oggetto, corpo, destinatari, date);
 
         /** Controllo della correttezza degli input */
         if (destinatari.length == 0 || oggetto.isEmpty() || corpo.isEmpty()) {
             errorLabel.setText("Errore: Tutti i campi devono essere compilati.");
+            successLabel.setText(""); // Pulisci eventuale messaggio di successo
             return;
         }
 
@@ -64,16 +68,22 @@ public class sendController {
         try (Socket clientSocket = new Socket("localhost",Structures.PORT)) {
             PrintWriter output_stream = new PrintWriter(clientSocket.getOutputStream(), true);
             output_stream.println(new_mail.toString());
-        } catch (IOException e) {
-            System.err.println("Errore durante l'esecuzione del server: " + e.getMessage());
-        }
+
+            // Se l'email è inviata con successo
+            successLabel.setText("Email inviata con successo!");
+            errorLabel.setText(""); // Pulisci eventuale messaggio di errore
 
         /** Pulisce i campi (opzionale) */
         toField.clear();
         receiversList.clear();
         subjectField.clear();
         bodyArea.clear();
+    } catch (IOException e) {
+        // Gestione dell'errore durante l'invio
+        errorLabel.setText("Errore durante l'invio dell'email: " + e.getMessage());
+        successLabel.setText(""); // Cancella eventuali successi
     }
+}
 
     /** Funzione per tornare alla sezione Inbox */
     @FXML
