@@ -17,7 +17,8 @@ import javafx.beans.property.SimpleStringProperty;
 import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
-
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class InboxController {
@@ -36,6 +37,7 @@ public class InboxController {
     @FXML
     private TableColumn<Mail, String> subjectColumn;
     public SessionBackup backup;
+    private Timer pingTimer;
 
     @FXML
     public void set_user_email(String email) {
@@ -54,6 +56,9 @@ public class InboxController {
         // Configura le altre colonne
         receiversColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSender()));
         subjectColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
+
+        // Inizializza il ping task
+        startPingTask();
     }
 
     /**
@@ -100,6 +105,37 @@ public class InboxController {
         emailTable.setItems(emailList);
     }
 
+    private void startPingTask() {
+        pingTimer = new Timer(true);
+        pingTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                updateServerStatus();
+            }
+        }, 0, 5000); // Ping every 5 seconds
+    }
+
+    private void updateServerStatus() {
+        if (isServerActive()) {
+            connectionStatus.setText("Connessione: Attiva");
+            connectionStatus.setStyle("-fx-text-fill: green;");
+        } else {
+            connectionStatus.setText("Connessione: Non Attiva");
+            connectionStatus.setStyle("-fx-text-fill: red;");
+        }
+    }
+
+    private boolean isServerActive() {
+        try (Socket socket = new Socket("localhost", Structures.PORT)) {
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out.println("ping");
+            String response = in.readLine();
+            return "pong".equals(response);
+        } catch (IOException e) {
+            return false;
+        }
+    }
 
     private ObservableList<Mail> get_new_emails() {
         /** Funzione per ottenere le nuove email dal server da mostrare a schermo */

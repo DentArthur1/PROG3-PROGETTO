@@ -8,7 +8,7 @@ import java.io.IOException;
 public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-      Structures.change_scene("Login.fxml", stage, getClass());
+        Structures.change_scene("Login.fxml", stage, getClass());
     }
 
     public static void main(String[] args) {

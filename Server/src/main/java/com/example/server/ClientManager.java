@@ -38,6 +38,13 @@ public class ClientManager {
                     }
                     //Scrivo il messaggio serializzato sul socket
                     sendEmails(serialized_messages);
+                } else if (data.equals("ping")) {
+                    try {
+                        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                        out.println("pong");
+                    } catch (IOException e) {
+                        System.err.println("Errore durante il ping: " + e.getMessage());
+                    }
                 } else {
                     Message parsedMessage = Message.fromLine(data);
                     saveMessage(parsedMessage);
