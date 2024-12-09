@@ -1,0 +1,5 @@
+com/example/shared/Structures.class
+com/example/shared/Mail.class
+com/example/shared/SessionBackup.class
+module-info.class
+com/example/shared/Request.class

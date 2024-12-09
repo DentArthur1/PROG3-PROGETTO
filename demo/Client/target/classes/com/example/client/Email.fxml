@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171"
+            fx:controller="com.example.client.EmailController">
+
+    <!-- Layout principale -->
+    <center>
+        <VBox spacing="15" style="-fx-padding: 20;">
+
+            <!-- Titolo della Mail -->
+            <Label style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Email Details" />
+
+            <!-- Dettagli della mail -->
+            <VBox spacing="8">
+                <HBox spacing="10">
+                    <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="From:" />
+                    <Label fx:id="senderLabel" style="-fx-font-size: 16px; color: #2980b9;" text="Sender Email" />
+                </HBox>
+
+                <HBox spacing="10">
+                    <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="To:" />
+                    <Label fx:id="receiverLabel" style="-fx-font-size: 16px; color: #2980b9;" text="Receiver Email" />
+                </HBox>
+
+                <HBox spacing="10">
+                    <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Subject:" />
+                    <Label fx:id="subjectLabel" style="-fx-font-size: 16px; color: #2980b9;" text="Email Subject" />
+                </HBox>
+
+                <HBox spacing="10">
+                    <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Date:" />
+                    <Label fx:id="dateLabel" style="-fx-font-size: 16px; color: #2980b9;" text="Sent Date" />
+                </HBox>
+            </VBox>
+
+            <!-- Corpo del messaggio -->
+            <VBox spacing="10" style="-fx-margin-top: 20px;">
+                <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Body:" />
+                <TextFlow>
+                    <Text fx:id="bodyText" style="-fx-font-size: 16px; -fx-text-fill: #34495e;" text="This is where the body of the email will appear." />
+                </TextFlow>
+            </VBox>
+        </VBox>
+    </center>
+
+    <!-- Pulsanti in basso a destra -->
+    <bottom>
+        <HBox alignment="BOTTOM_RIGHT" spacing="15" style="-fx-padding: 15;">
+            <Button text="Reply" onAction="#handleReply" style="-fx-background-color: #2980b9; -fx-text-fill: white;" />
+            <Button text="Reply All" onAction="#handleReplyAll" style="-fx-background-color: #16a085; -fx-text-fill: white;" />
+            <Button text="Back to Inbox" onAction="#handleBackToInbox" style="-fx-background-color: #7f8c8d; -fx-text-fill: white;" />
+        </HBox>
+    </bottom>
+
+</BorderPane>
