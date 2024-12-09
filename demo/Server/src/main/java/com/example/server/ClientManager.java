@@ -38,6 +38,7 @@ public class ClientManager {
                     case Structures.UPDATE_MAILS -> handleUpdateMails();
                     case Structures.PING -> handlePing();
                     case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
+                    case Structures.LOGIN_CHECK -> handleLoginCheck((Request<String>) request);
                     default -> System.err.println("Codice richiesta non riconosciuto: " + request.getRequestCode());
                 }
 
@@ -91,7 +92,33 @@ public class ClientManager {
             writer.newLine();
         }
     }
+    private void handleLoginCheck(Request<String> request) throws IOException {
+        String userEmail = request.getPayload();
+        boolean userExists = checkUserExists(userEmail);
+        int responseCode;
+        if (userExists) {
+            System.out.println("User " + userEmail + " found. Sending LOGIN_OK.");
+            responseCode = Structures.LOGIN_OK;
+        } else {
+            System.out.println("User " + userEmail + " not found. Sending LOGIN_ERROR.");
+            responseCode = Structures.LOGIN_ERROR;
+        }
 
+        Request<String> response = new Request<>(responseCode, userEmail);
+        sendResponse(response);
+    }
+
+    private boolean checkUserExists(String email) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader("demo/Server/src/main/resources/users.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().equalsIgnoreCase(email)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     private void closeConnection() {
         try {
             if (input != null) input.close();
