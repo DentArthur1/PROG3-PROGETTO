@@ -112,6 +112,11 @@ public class Mail implements Serializable{
         this.selected.set(selected);
     }
 
+    public void recover_from_serialization(){
+        this.selected = new SimpleBooleanProperty(false);
+    }
+
+
     /**
      * Metodo `toString`.
      * Converte l'oggetto `Mail` in una stringa con un formato specifico.

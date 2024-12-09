@@ -130,13 +130,16 @@ public class InboxController {
     }
 
     private boolean isServerActive() {
-        try (Socket socket = new Socket("localhost", Structures.PORT)) {
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out.println("ping");
-            String response = in.readLine();
-            return "pong".equals(response);
-        } catch (IOException e) {
+        try {
+            Socket clientSocket = new Socket("localhost", Structures.PORT);
+            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+            ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
+            Request<String> ping_request = new Request<>(Structures.PING, "ping");
+            output.writeObject(ping_request);
+            Request<?> pong_request = (Request<?>) input.readObject();
+            return pong_request.getRequestCode() == Structures.PING;
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -145,35 +148,29 @@ public class InboxController {
         /** Funzione per ottenere le nuove email dal server da mostrare a schermo */
         ObservableList<Mail> parsed_mails = FXCollections.observableArrayList();
 
-        try (Socket clientSocket = new Socket("localhost", Structures.PORT)) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+        try {
+            Socket clientSocket = new Socket("localhost", Structures.PORT);
+            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+            ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
 
-            // Invia la richiesta "Gimme" al server
-            out.println("Gimme");
+            Request<String> mail_update_request = new Request<>(Structures.UPDATE_MAILS, "");
+            output.writeObject(mail_update_request);
 
-            // Variabile per memorizzare la risposta del server
-            String data = null;
+            Request<?> new_mails = (Request<?>) input.readObject();
 
-            // Attende la risposta del server finché non riceve una risposta non null e non vuota
-            while (data == null || data.isEmpty()) {
-                data = in.readLine();
+
+            if (new_mails.getRequestCode() == Structures.UPDATE_MAILS) {
+                ArrayList<Mail> mails = (ArrayList<Mail>) new_mails.getPayload();
+                //---
+                for (Mail mail : mails) { //RECUPERO IL CAMPO PERSO DURANTE LA SERIALIZZAZIONE
+                    mail.recover_from_serialization();
+                }
+                //---
+                parsed_mails.addAll(mails);
             }
-
-            // Elabora le email ricevute solo se la risposta non è null o vuota
-            String[] mails = data.split("§§§");
-
-            // Per ogni mail nell'array di mail non-parsed
-            for (String mail : mails) {
-                String[] parts = mail.split("§");
-                String[] receivs = parts[4].split(",");
-                Mail new_mail = new Mail(parts[0], parts[1], parts[2], parts[3], receivs, LocalDateTime.parse(parts[5]));
-                parsed_mails.add(new_mail);
-            }
-        } catch (IOException e) {
-            System.err.println("Errore durante l'ottenimento delle mail dal server: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Non è stato possibile recuperare le email. Riprova più tardi.");
         }
-
         return parsed_mails;
     }
 

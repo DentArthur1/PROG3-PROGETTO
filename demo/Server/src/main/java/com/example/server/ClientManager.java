@@ -3,83 +3,88 @@ package com.example.server;
 import com.example.shared.Mail;
 import com.example.shared.Structures;
 import com.example.shared.Request;
-import javafx.application.Platform;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
 /**
- * Gestisce le connessioni multiple con i client
+ * Gestisce le connessioni multiple con i client.
  */
 public class ClientManager {
 
-    private Socket clientSocket;
-    private MessageService messageService;
+    private final Socket clientSocket;
+    private final MessageService messageService;
+    private ObjectOutputStream output;
+    private ObjectInputStream input;
 
-    public ClientManager(Socket clientSocket) {
-        this.clientSocket = clientSocket;
+    public ClientManager(Socket socket) {
+        this.clientSocket = socket;
         this.messageService = new MessageService();
     }
 
     public void handleClient() {
-        new Thread(() -> {
-            try {
-                String data = readDataFromClient();
-                if (data.equals("Gimme")){ //Il client richiede le mail
-                    ArrayList<Mail> messages = messageService.loadMessages();
-                    //Serializzo l'array di messaggi
-                    String serialized_messages = "";
-                    for (Mail message : messages) {
-                        if (serialized_messages.equals("")){
-                            serialized_messages = message.toString();
-                        } else {
-                            serialized_messages = serialized_messages + "§§§" + message.toString();
-                        }
-                    }
-                    //Scrivo il messaggio serializzato sul socket
-                    sendEmails(serialized_messages);
-                } else if (data.equals("ping")) {
-                    try {
-                        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                        out.println("pong");
-                    } catch (IOException e) {
-                        System.err.println("Errore durante il ping: " + e.getMessage());
-                    }
-                } else {
-                    Mail parsedMessage = Mail.fromLine(data);
-                    saveMessage(parsedMessage);
-                    Platform.runLater(() -> {
-                        System.out.println("Messaggio salvato: " + parsedMessage);
-                    });
+        try {
+            // Inizializza gli stream all'inizio
+            output = new ObjectOutputStream(clientSocket.getOutputStream());
+            output.flush(); // Invia l'header
+            input = new ObjectInputStream(clientSocket.getInputStream());
+
+            // Ciclo per leggere le richieste dal client
+
+                Request<?> request = readDataFromClient(); //unire le classi
+
+                // Switch-case per gestire le richieste
+                switch (request.getRequestCode()) {
+                    case Structures.UPDATE_MAILS -> handleUpdateMails();
+                    case Structures.PING -> handlePing();
+                    case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
+                    default -> System.err.println("Codice richiesta non riconosciuto: " + request.getRequestCode());
                 }
-            } catch (IOException e) {
-                System.err.println("Errore nella gestione del client: " + e.getMessage());
-            } finally {
-                try {
-                    clientSocket.close();
-                } catch (IOException e) {
-                    System.err.println("Errore nella chiusura del socket del client: " + e.getMessage());
-                }
-            }
-        }).start();
+
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Errore nella gestione del client: ");
+            e.printStackTrace();
+        } finally {
+            closeConnection();
+        }
     }
 
-    /**
-     * Legge i dati inviati dal client.
-     */
-    private String readDataFromClient() throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        return in.readLine();
+    private void handleUpdateMails() throws IOException {
+        ArrayList<Mail> messages = messageService.loadMessages();
+        Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, messages);
+        sendResponse(response);
+        System.out.println("Email inviate con successo!");
     }
 
-    /**
-     * Salva un messaggio nel file.
-     */
+    private void handlePing() throws IOException {
+        Request<String> response = new Request<>(Structures.PING, "pong");
+        sendResponse(response);
+        System.out.println("Ping gestito correttamente!");
+    }
+
+    private void handleSendMail(Request<Mail> request) {
+        try {
+            Mail mail = request.getPayload();
+            saveMessage(mail);
+            System.out.println("Messaggio salvato: " + mail);
+        } catch (IOException e) {
+            System.err.println("Errore durante il salvataggio del messaggio: " + e.getMessage());
+        }
+    }
+
+    private Request<?> readDataFromClient() throws IOException, ClassNotFoundException {
+        return (Request<?>) input.readObject();
+    }
+
+    private void sendResponse(Request<?> response) throws IOException {
+        output.writeObject(response);
+        output.flush();
+    }
+
     private void saveMessage(Mail message) throws IOException {
         File file = new File(Structures.FILE_PATH);
-        if (!file.exists()) {
-            throw new IOException("File inesistente: " + Structures.FILE_PATH);
+        if (!file.exists() && !file.createNewFile()) {
+            throw new IOException("Impossibile creare il file: " + Structures.FILE_PATH);
         }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
             writer.write(message.toString());
@@ -87,16 +92,13 @@ public class ClientManager {
         }
     }
 
-    private void sendEmails(String serialized) {
-        //Invia le email al client
-        try (PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
-            System.out.println("Email inviate con successo dal server!\n");
-            out.println(serialized);
-            //System.out.println(serialized);
+    private void closeConnection() {
+        try {
+            if (input != null) input.close();
+            if (output != null) output.close();
+            clientSocket.close();
         } catch (IOException e) {
-            System.err.println("Errore nell'invio delle mail dal server: " + e.getMessage());
+            System.err.println("Errore durante la chiusura della connessione: " + e.getMessage());
         }
-
     }
-
 }

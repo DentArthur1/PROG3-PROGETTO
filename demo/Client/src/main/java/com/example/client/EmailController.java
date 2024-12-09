@@ -52,7 +52,7 @@ public class EmailController {
     }
 
     public void handleBackToInbox(ActionEvent actionEvent) {
-        InboxController inbox_controller = Structures.change_scene((Stage) subjectLabel.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Email.fxml")));
+        InboxController inbox_controller = Structures.change_scene((Stage) subjectLabel.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Inbox.fxml")));
         inbox_controller.access_inbox(backup);
     }
 

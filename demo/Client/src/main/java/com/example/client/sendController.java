@@ -1,6 +1,7 @@
 package com.example.client;
 
 import com.example.shared.Mail;
+import com.example.shared.Request;
 import com.example.shared.SessionBackup;
 import com.example.shared.Structures;
 import javafx.fxml.FXML;
@@ -66,9 +67,13 @@ public class sendController {
         }
 
         /** Scrive la mail sul socket */ //MODIFICARE
-        try (Socket clientSocket = new Socket("localhost",Structures.PORT)) {
-            PrintWriter output_stream = new PrintWriter(clientSocket.getOutputStream(), true);
-            output_stream.println(new_mail.toString());
+        try  {
+            Socket clientSocket = new Socket("localhost", Structures.PORT);
+            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+
+            //Costruisco la richiesta
+            Request<Mail> new_mail_to_send = new Request<>(Structures.SEND_MAIL,new_mail);
+            output.writeObject(new_mail_to_send);
 
             // Se l'email è inviata con successo
             successLabel.setText("Email inviata con successo!");
