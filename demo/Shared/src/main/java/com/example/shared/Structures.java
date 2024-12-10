@@ -25,7 +25,8 @@ public class Structures {
     public static final int SCENE_HEIGHT = 500;
     public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
     public static final int PORT = 8081; /** Porta del server*/
-    public static final String FILE_PATH = "data.txt";
+    public static final String FILE_PATH = "demo/Server/src/main/resources/data.txt";
+    public static final String USER_PATH = "demo/Server/src/main/resources/users.txt";
     //Codici operativi richieste
     public static final int PING = 0;
     public static final int UPDATE_MAILS = 1;

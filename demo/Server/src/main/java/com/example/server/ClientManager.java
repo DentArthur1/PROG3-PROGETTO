@@ -29,19 +29,17 @@ public class ClientManager {
             output.flush(); // Invia l'header
             input = new ObjectInputStream(clientSocket.getInputStream());
 
-            // Ciclo per leggere le richieste dal client
+            Request<?> request = readDataFromClient();
 
-                Request<?> request = readDataFromClient(); //unire le classi
-
-                // Switch-case per gestire le richieste
-                switch (request.getRequestCode()) {
-                    case Structures.UPDATE_MAILS -> handleUpdateMails();
-                    case Structures.PING -> handlePing();
-                    case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
-                    case Structures.LOGIN_CHECK -> handleLoginCheck((Request<String>) request);
-                    case Structures.DEST_CHECK -> handleDestCheck((Request<String>) request);
-                    default -> System.err.println("Codice richiesta non riconosciuto: " + request.getRequestCode());
-                }
+            // Switch-case per gestire le richieste
+            switch (request.getRequestCode()) {
+                case Structures.UPDATE_MAILS -> handleUpdateMails((Request<String>) request);
+                case Structures.PING -> handlePing();
+                case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
+                case Structures.LOGIN_CHECK -> handleLoginCheck((Request<String>) request);
+                case Structures.DEST_CHECK -> handleDestCheck((Request<String>) request);
+                default -> System.err.println("Codice richiesta non riconosciuto: " + request.getRequestCode());
+            }
 
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Errore nella gestione del client: ");
@@ -51,10 +49,9 @@ public class ClientManager {
         }
     }
 
+    private void handleUpdateMails(Request<String> request_with_mail) throws IOException {
 
-
-    private void handleUpdateMails() throws IOException {
-        ArrayList<Mail> messages = messageService.loadMessages();
+        ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload());
         Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, messages);
         sendResponse(response);
         System.out.println("Email inviate con successo!");
@@ -91,8 +88,8 @@ public class ClientManager {
             throw new IOException("Impossibile creare il file: " + Structures.FILE_PATH);
         }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-            writer.write(message.toString());
             writer.newLine();
+            writer.write(message.toString());
         }
     }
     private void handleLoginCheck(Request<String> request) throws IOException {
@@ -111,17 +108,6 @@ public class ClientManager {
         sendResponse(response);
     }
 
-    private boolean checkUserExists(String email) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new FileReader("demo/Server/src/main/resources/users.txt"))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().equalsIgnoreCase(email)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
     private void handleDestCheck(Request<String> request) throws IOException {
         String userEmail = request.getPayload();
         boolean userExists = checkUserExists(userEmail);
@@ -136,6 +122,18 @@ public class ClientManager {
 
         Request<String> response = new Request<>(responseCode, userEmail);
         sendResponse(response);
+    }
+
+    private boolean checkUserExists(String email) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(Structures.USER_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().equalsIgnoreCase(email)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     private void closeConnection() {
         try {

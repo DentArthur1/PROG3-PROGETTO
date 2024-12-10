@@ -153,7 +153,7 @@ public class InboxController {
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
 
-            Request<String> mail_update_request = new Request<>(Structures.UPDATE_MAILS, "");
+            Request<String> mail_update_request = new Request<>(Structures.UPDATE_MAILS, backup.getUserEmailBackup());
             output.writeObject(mail_update_request);
 
             Request<?> new_mails = (Request<?>) input.readObject();

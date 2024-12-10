@@ -22,15 +22,8 @@ public class MessageService {
         ArrayList<Mail> messages = new ArrayList<>();
 
         // Carica il file da resources
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(Structures.FILE_PATH);
 
-        // Verifica se il file esiste
-        if (inputStream == null) {
-            System.out.println("Il file non esiste nel classpath: " + Structures.FILE_PATH);
-            return messages;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(Structures.FILE_PATH))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 messages.add(Mail.fromLine(line));  // Aggiungi ogni messaggio dalla linea
@@ -47,7 +40,7 @@ public class MessageService {
      * @return lista di email ricevute dall'utente
      *
      */
-    public List<Mail> getMessagesByReceiver(String receiver) {
+    public ArrayList<Mail> getMessagesByReceiver(String receiver) {
         ArrayList<Mail> allMessages = loadMessages();
         ArrayList<Mail> filteredMessages = new ArrayList<>();
         for (Mail message : allMessages) {
