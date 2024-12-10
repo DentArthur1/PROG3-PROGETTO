@@ -39,6 +39,7 @@ public class ClientManager {
                     case Structures.PING -> handlePing();
                     case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
                     case Structures.LOGIN_CHECK -> handleLoginCheck((Request<String>) request);
+                    case Structures.DEST_CHECK -> handleDestCheck((Request<String>) request);
                     default -> System.err.println("Codice richiesta non riconosciuto: " + request.getRequestCode());
                 }
 
@@ -49,6 +50,8 @@ public class ClientManager {
             closeConnection();
         }
     }
+
+
 
     private void handleUpdateMails() throws IOException {
         ArrayList<Mail> messages = messageService.loadMessages();
@@ -118,6 +121,21 @@ public class ClientManager {
             }
         }
         return false;
+    }
+    private void handleDestCheck(Request<String> request) throws IOException {
+        String userEmail = request.getPayload();
+        boolean userExists = checkUserExists(userEmail);
+        int responseCode;
+        if (userExists) {
+            System.out.println("User " + userEmail + " found. Sending DEST_OK.");
+            responseCode = Structures.DEST_OK;
+        } else {
+            System.out.println("User " + userEmail + " not found. Sending DEST_ERROR.");
+            responseCode = Structures.DEST_ERROR;
+        }
+
+        Request<String> response = new Request<>(responseCode, userEmail);
+        sendResponse(response);
     }
     private void closeConnection() {
         try {
