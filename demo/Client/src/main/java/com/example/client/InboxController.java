@@ -120,13 +120,15 @@ public class InboxController {
     }
 
     private void updateServerStatus() {
-        if (isServerActive()) {
-            connectionStatus.setText("Connessione: Attiva");
-            connectionStatus.setStyle("-fx-text-fill: green;");
-        } else {
-            connectionStatus.setText("Connessione: Non Attiva");
-            connectionStatus.setStyle("-fx-text-fill: red;");
-        }
+        Platform.runLater(() -> {
+            if (isServerActive()) {
+                connectionStatus.setText("Connessione: Attiva");
+                connectionStatus.setStyle("-fx-text-fill: green;");
+            } else {
+                connectionStatus.setText("Connessione: Non Attiva");
+                connectionStatus.setStyle("-fx-text-fill: red;");
+            }
+        });
     }
 
     private boolean isServerActive() {
@@ -134,9 +136,11 @@ public class InboxController {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
+
             Request<String> ping_request = new Request<>(Structures.PING, "ping");
             output.writeObject(ping_request);
             Request<?> pong_request = (Request<?>) input.readObject();
+
             return pong_request.getRequestCode() == Structures.PING;
         } catch (Exception e) {
             e.printStackTrace();

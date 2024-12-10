@@ -16,10 +16,12 @@ public class ClientManager {
     private final MessageService messageService;
     private ObjectOutputStream output;
     private ObjectInputStream input;
+    private int email_file_pointer;
 
     public ClientManager(Socket socket) {
         this.clientSocket = socket;
         this.messageService = new MessageService();
+        this.email_file_pointer = 0;
     }
 
     public void handleClient() {
@@ -51,7 +53,10 @@ public class ClientManager {
 
     private void handleUpdateMails(Request<String> request_with_mail) throws IOException {
 
-        ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload());
+        ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload(), this.email_file_pointer);
+        //Aggiorno il pointer incrementale al file
+        this.email_file_pointer += messages.size();
+        //Ottengo le mail
         Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, messages);
         sendResponse(response);
         System.out.println("Email inviate con successo!");
