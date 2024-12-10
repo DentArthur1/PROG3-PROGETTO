@@ -41,10 +41,35 @@ public class sendController {
 
         /** Verifica se il campo del destinatario non è vuoto e se l'indirizzo è valido */
         if (!destinatario.isEmpty() && Structures.isValidEmail(destinatario)) {
-            // Aggiungi il destinatario alla lista visibile
-            receiversList.appendText(destinatario + "\n");
-            // Cancella il campo per il prossimo inserimento
-            toField.clear();
+
+            try (Socket socket = new Socket("localhost", Structures.PORT);
+                 ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
+                 ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
+
+                Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario);
+                output.writeObject(request);
+                output.flush();
+
+                Request<?> response = (Request<?>) input.readObject();
+                if (response.getRequestCode() == Structures.DEST_OK) {
+                    // Aggiungi il destinatario alla lista visibile
+                    receiversList.appendText(destinatario + "\n");
+                    // Cancella il campo per il prossimo inserimento
+                    toField.clear();
+                } else if(response.getRequestCode() == Structures.DEST_ERROR) {
+                    errorLabel.setText("Errore: Indirizzo email non trovato.");
+                    successLabel.setText(""); // Cancella eventuali successi precedenti
+
+                }
+                else {
+                    errorLabel.setText("Errore sconosciuto.");
+                    successLabel.setText(""); // Cancella eventuali successi precedenti
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+                errorLabel.setText("Error connecting to server.");
+            }
+
         } else {
             errorLabel.setText("Errore: Indirizzo email non valido.");
             successLabel.setText(""); // Cancella eventuali successi precedenti

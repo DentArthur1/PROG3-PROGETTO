@@ -33,6 +33,9 @@ public class Structures {
     public static final int LOGIN_CHECK = 3;
     public static final int LOGIN_OK = 4;
     public static final int LOGIN_ERROR = 5;
+    public static final int DEST_CHECK = 6;
+    public static final int DEST_OK = 7;
+    public static final int DEST_ERROR = 8;
 
     public static <T> T change_scene(Stage current_stage,  FXMLLoader prova){
         /**Metodo utilizzato per cambiare scena e ritorna l'istanza del nuovo controller*/
