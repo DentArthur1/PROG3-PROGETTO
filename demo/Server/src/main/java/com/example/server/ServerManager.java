@@ -48,13 +48,16 @@ public class ServerManager implements Runnable {
     @Override
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket(Structures.PORT)) {
+            /**
+             * SOLUZIONE NON MULTI-THREAD */
             this.serverSocket = serverSocket;
             System.out.println("Server in ascolto sulla porta " + Structures.PORT);
+            ClientManager clientManager = new ClientManager();
             while (running) {
                 try {
                     Socket clientSocket = serverSocket.accept();
                     // Crea un ClientManager per gestire il client
-                    ClientManager clientManager = new ClientManager(clientSocket);
+                    clientManager.set_socket(clientSocket);
                     clientManager.handleClient(); // Gestisce il client
                 } catch (IOException e) {
                     if (running) { // Se il server è stato fermato, ignora l'errore

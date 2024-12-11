@@ -27,7 +27,7 @@ public class SessionBackup {
     public ObservableList<Mail> getEmailBackup() {
         return emailBackup;
     }
-    private void setEmailBackup(ObservableList<Mail> emailBackup) {
+    public void setEmailBackup(ObservableList<Mail> emailBackup) {
         this.emailBackup = emailBackup;
     }
 

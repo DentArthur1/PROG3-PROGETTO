@@ -42,6 +42,7 @@ public class InboxController {
     private TableColumn<Mail, String> subjectColumn;
     public SessionBackup backup;
     private Timer pingTimer;
+    private Timer emailUpdateTimer;
 
     @FXML
     public void set_user_email(String email) {
@@ -63,6 +64,7 @@ public class InboxController {
 
         // Inizializza il ping task
         startPingTask();
+        startEmailUpdateTask();
     }
 
     /**
@@ -117,6 +119,22 @@ public class InboxController {
                 updateServerStatus();
             }
         }, 0, 5000); // Ping every 5 seconds
+    }
+    private void startEmailUpdateTask() {
+        /** Avvia un task periodico per aggiornare le email */
+        emailUpdateTimer = new Timer(true); // Timer come thread daemon
+        emailUpdateTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    ObservableList<Mail> updatedEmails = get_new_emails();
+                    if (updatedEmails != null) {
+                        emailList.setAll(updatedEmails); // Aggiorna la lista delle email
+                        backup.setEmailBackup(updatedEmails);
+                    }
+                });
+            }
+        }, 10000, 10000); // Aggiorna ogni 10 secondi
     }
 
     private void updateServerStatus() {

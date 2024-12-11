@@ -10,16 +10,13 @@ public class MessageService {
      * Metodo per caricare i messaggi dal file
      * @return lista di messaggi e la aggiunge alla memoria del server
      */
-
-    public void MessageService(){
-
-    }
+    private int email_file_pointer = 0;
     /**
      *  Metodo per caricare i messaggi dal file in memoria
      * @return lista di messaggi
      */
-    public ArrayList<Mail> loadMessages(int file_pointer) {
-        System.out.println("Loading Messages from " + file_pointer);
+    public ArrayList<Mail> loadMessages() {
+        System.out.println("Loading Messages from " + this.email_file_pointer);
         ArrayList<Mail> messages = new ArrayList<>();
         // Carica il file da resources
         try (BufferedReader reader = new BufferedReader(new FileReader(Structures.FILE_PATH))) {
@@ -27,7 +24,7 @@ public class MessageService {
             int lineNumber = 0; // Contatore delle righe
             while ((line = reader.readLine()) != null) {
                 lineNumber++;
-                if (lineNumber <= file_pointer) {
+                if (lineNumber <= this.email_file_pointer) {
                     continue; // Salta fino alla riga indicata da file_pointer
                 }
                 messages.add(Mail.fromLine(line)); // Aggiungi il messaggio dalla linea
@@ -35,7 +32,8 @@ public class MessageService {
         } catch (IOException e) {
             System.err.println("Errore durante la lettura del file: " + e.getMessage());
         }
-
+        //Aggiorno il pointer incrementale al file
+        this.email_file_pointer += messages.size();
         return messages;
     }
 
@@ -45,8 +43,8 @@ public class MessageService {
      * @return lista di email ricevute dall'utente
      *
      */
-    public ArrayList<Mail> getMessagesByReceiver(String receiver, int file_pointer) {
-        ArrayList<Mail> allMessages = loadMessages(file_pointer);
+    public ArrayList<Mail> getMessagesByReceiver(String receiver) {
+        ArrayList<Mail> allMessages = loadMessages();
         ArrayList<Mail> filteredMessages = new ArrayList<>();
         for (Mail message : allMessages) {
             for (String msg_receiver: message.getReceivers()){

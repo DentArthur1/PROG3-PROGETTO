@@ -12,16 +12,17 @@ import java.util.ArrayList;
  */
 public class ClientManager {
 
-    private final Socket clientSocket;
+    private Socket clientSocket;
     private final MessageService messageService;
     private ObjectOutputStream output;
     private ObjectInputStream input;
-    private int email_file_pointer;
 
-    public ClientManager(Socket socket) {
-        this.clientSocket = socket;
+    public ClientManager() {
         this.messageService = new MessageService();
-        this.email_file_pointer = 0;
+    }
+
+    public void set_socket(Socket socket) {
+        this.clientSocket = socket;
     }
 
     public void handleClient() {
@@ -53,9 +54,7 @@ public class ClientManager {
 
     private void handleUpdateMails(Request<String> request_with_mail) throws IOException {
 
-        ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload(), this.email_file_pointer);
-        //Aggiorno il pointer incrementale al file
-        this.email_file_pointer += messages.size();
+        ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload());
         //Ottengo le mail
         Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, messages);
         sendResponse(response);
