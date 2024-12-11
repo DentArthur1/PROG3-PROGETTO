@@ -9,6 +9,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 
 public class EmailController {
     /** Classe controllore email per gestire l'operazione di visualizzazione mail */
@@ -42,7 +45,7 @@ public class EmailController {
     public void fill_receivers(Mail example){
         /** Ottiene i destinatari dai dati della classe mail e li mostra a schermo */
         String[] receivs = example.getReceivers();
-        String all_Receivs = String.join(", ", receivs);
+        String all_Receivs = String.join(",", receivs);
         receiverLabel.setText(all_Receivs);
     }
 
@@ -61,12 +64,33 @@ public class EmailController {
     }
 
 
+    public void handleReplyAll(ActionEvent actionEvent) {
+        /**
+         * BUG: COPIA ERRATA DELLE MAIL CON PIÙ DESTINATARI SUL FILE*/
+        /** Accede alla sezione Send */
+        sendController send_controller = Structures.change_scene((Stage) subjectLabel.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Send.fxml")));
+        send_controller.backup = backup;
+        /**
+         * Setto i valori della mail alla quale intendo rispondere*/
+        send_controller.set_content(bodyLabel.getText());
+        send_controller.set_subject(subjectLabel.getText());
+        ArrayList<String> receivers = new ArrayList<>(Arrays.asList(selected_email.getReceivers()));
+        /**
+         * Aggiunge tutti i destinatari, rimuove la propria mail, aggiunge il mittente alla lista dei nuovi destinatari*/
+        receivers.remove(backup.getUserEmailBackup());
+        receivers.add(senderLabel.getText());
+        send_controller.set_receivers(receivers.toArray(new String[0]));
+    }
+
     public void handleReply(ActionEvent actionEvent) {
         /** Accede alla sezione Send */
         sendController send_controller = Structures.change_scene((Stage) subjectLabel.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Send.fxml")));
         send_controller.backup = backup;
-    }
-
-    public void handleReplyAll(ActionEvent actionEvent) {
+        /**
+         * Setto i valori della mail alla quale intendo rispondere*/
+        send_controller.set_content(bodyLabel.getText());
+        send_controller.set_subject(subjectLabel.getText());
+        String[] receiver = {selected_email.getSender()};
+        send_controller.set_receivers(receiver);
     }
 }

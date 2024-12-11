@@ -5,7 +5,7 @@ import com.example.shared.Structures;
 import com.example.shared.Request;
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.*;
 
 public class ClientManager {
 
@@ -26,27 +26,80 @@ public class ClientManager {
 
     public void handleClient() {
         try {
+            // Inizializza gli stream all'inizio
             output = new ObjectOutputStream(clientSocket.getOutputStream());
-            output.flush();
+            output.flush(); // Invia l'header
             input = new ObjectInputStream(clientSocket.getInputStream());
 
             Request<?> request = readDataFromClient();
 
+            // Switch-case per gestire le richieste
             switch (request.getRequestCode()) {
                 case Structures.UPDATE_MAILS -> handleUpdateMails((Request<String>) request);
                 case Structures.PING -> handlePing();
                 case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
                 case Structures.LOGIN_CHECK -> handleLoginCheck((Request<String>) request);
                 case Structures.DEST_CHECK -> handleDestCheck((Request<String>) request);
+                case Structures.LOGOUT -> handleLogout();
+                case Structures.DELETE -> handleDelete((Request<ArrayList<Mail>>) request);
                 default -> serverController.addLog("Codice richiesta non riconosciuto: " + request.getRequestCode());
             }
 
         } catch (IOException | ClassNotFoundException e) {
-            serverController.addLog("Errore nella gestione del client: " + e.getMessage());
+            serverController.addLog("Errore nella gestione del client: ");
+            e.printStackTrace();
         } finally {
             closeConnection();
         }
     }
+    private void handleLogout() {
+        messageService.reset_file_pointer();
+        serverController.addLog("Logout request received, resetting file pointer.");
+    }
+    /**
+     * ELIMINA LE MAIL DAL SERVER*/
+    private void handleDelete(Request<ArrayList<Mail>> request) throws IOException {
+        // Converto in un array di stringhe
+        String[] mailStrings = new String[request.getPayload().size()];
+        for (int i = 0; i < request.getPayload().size(); i++) {
+            mailStrings[i] = request.getPayload().get(i).toString(); // Chiama toString() su ogni Mail
+        }
+
+        // Ottieni l'elenco di email da eliminare come un Set per confronti più rapidi
+        Set<String> emailsToDelete = new HashSet<>(Arrays.asList(mailStrings));
+
+        // File da modificare
+        File file = new File(Structures.FILE_PATH);
+
+        if (!file.exists()) {
+            serverController.addLog("Il file non esiste: " + Structures.FILE_PATH);
+            return;
+        }
+        // Leggi tutto il contenuto del file in memoria e filtra le righe da eliminare
+        List<String> filteredLines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String trimmedLine = line.trim();
+                if (!emailsToDelete.contains(trimmedLine)) {
+                    filteredLines.add(line); // Aggiungi solo le righe che non devono essere eliminate
+                }
+            }
+        }
+        // Scrivi nuovamente il contenuto filtrato nel file, sovrascrivendo il vecchio contenuto
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (String line : filteredLines) {
+                writer.write(line);
+                writer.newLine(); // Scrivi ogni riga con una nuova linea
+            }
+        }
+        // Aggiorno il riferimento al puntatore (nel tuo contesto)
+        this.messageService.decrease_file_pointer(mailStrings.length);
+
+        serverController.addLog("Email deletion success:\n" + emailsToDelete + "\n----> DELETED");
+    }
+
+
 
     private void handleUpdateMails(Request<String> request_with_mail) throws IOException {
         ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload());

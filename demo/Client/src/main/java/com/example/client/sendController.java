@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.io.*;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 public class sendController {
     /** Classe controllore per gestire l'operazione di invio messaggi */
@@ -35,54 +36,82 @@ public class sendController {
 
     public SessionBackup backup;
 
+    /**
+     * Setter per metodo di reply/ reply all*/
+
+    public void set_subject(String subject) {
+        subjectField.setText("RE:" + subject);
+    }
+    public void set_content(String content) {
+        bodyArea.setText("RE:" + content);
+    }
+    public void set_receivers(String[] receivers) {
+        for (int i = 0; i < receivers.length; i++) {
+            toField.appendText(receivers[i]);
+            // Aggiungi la virgola solo se non è l'ultimo elemento
+            if (i < receivers.length - 1) {
+                toField.appendText(",");
+            }
+        }
+    }
+
     @FXML
     protected void addReceiver() {
-        String destinatario = toField.getText().trim();
+        String[] destinatari = toField.getText().trim().split(",");
 
-        /** Verifica se il campo del destinatario non è vuoto e se l'indirizzo è valido */
-        if (!destinatario.isEmpty() && Structures.isValidEmail(destinatario)) {
+        for (String destinatario: destinatari){
+            /** Verifica se il campo del destinatario non è vuoto e se l'indirizzo è valido */
+            if (!destinatario.isEmpty() && Structures.isValidEmail(destinatario)) {
 
-            try (Socket socket = new Socket("localhost", Structures.PORT);
-                 ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
-                 ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
+                try (Socket socket = new Socket("localhost", Structures.PORT);
+                     ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
+                     ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
 
-                Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario);
-                output.writeObject(request);
-                output.flush();
+                    Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario);
+                    output.writeObject(request);
+                    output.flush();
 
-                Request<?> response = (Request<?>) input.readObject();
-                if (response.getRequestCode() == Structures.DEST_OK) {
-                    // Aggiungi il destinatario alla lista visibile
-                    receiversList.appendText(destinatario + "\n");
-                    // Cancella il campo per il prossimo inserimento
-                    toField.clear();
-                } else if(response.getRequestCode() == Structures.DEST_ERROR) {
-                    errorLabel.setText("Errore: Indirizzo email non trovato.");
-                    successLabel.setText(""); // Cancella eventuali successi precedenti
+                    Request<?> response = (Request<?>) input.readObject();
+                    if (response.getRequestCode() == Structures.DEST_OK) {
+                        // Aggiungi il destinatario alla lista visibile
+                        receiversList.appendText(destinatario + "\n");
+                        // Cancella il campo per il prossimo inserimento
+                        toField.clear();
+                    } else if(response.getRequestCode() == Structures.DEST_ERROR) {
+                        errorLabel.setText("Errore: Indirizzo email: " + destinatario +" non trovato.");
+                        successLabel.setText(""); // Cancella eventuali successi precedenti
 
+                    }
+                    else {
+                        errorLabel.setText("Errore sconosciuto.");
+                        successLabel.setText(""); // Cancella eventuali successi precedenti
+                        break;
+                    }
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                    errorLabel.setText("Error connecting to server.");
+                    break;
                 }
-                else {
-                    errorLabel.setText("Errore sconosciuto.");
-                    successLabel.setText(""); // Cancella eventuali successi precedenti
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-                errorLabel.setText("Error connecting to server.");
+
+            } else {
+                errorLabel.setText("Errore: Indirizzo email non valido.");
+                successLabel.setText(""); // Cancella eventuali successi precedenti
+                break;
             }
-
-        } else {
-            errorLabel.setText("Errore: Indirizzo email non valido.");
-            successLabel.setText(""); // Cancella eventuali successi precedenti
         }
+
     }
 
     @FXML
     protected void sendEmail() {
         String oggetto = subjectField.getText().trim();
-        String corpo = bodyArea.getText().trim();
-        String[] destinatari = receiversList.getText().trim().split(","); // Legge tutti i destinatari
+        //Elimino eventuali caratteri che romperebbero la formattazione del file
+        String corpo = bodyArea.getText().trim().replace("\n", "").replace("\r", "");
+
+        String[] destinatari = receiversList.getText().trim().split("\n"); // Legge tutti i destinatari
+        System.out.println(Arrays.toString(destinatari));
         LocalDateTime date = LocalDateTime.now();
-        Mail new_mail = new Mail("id", backup.getUserEmailBackup(), oggetto, corpo, destinatari, date);
+        Mail new_mail = new Mail(backup.getUserEmailBackup(), oggetto, corpo, destinatari, date);
 
         /** Controllo della correttezza degli input */
         if (destinatari.length == 0 || oggetto.isEmpty() || corpo.isEmpty()) {
@@ -104,17 +133,17 @@ public class sendController {
             successLabel.setText("Email inviata con successo!");
             errorLabel.setText(""); // Pulisci eventuale messaggio di errore
 
-        /** Pulisce i campi (opzionale) */
-        toField.clear();
-        receiversList.clear();
-        subjectField.clear();
-        bodyArea.clear();
-    } catch (IOException e) {
-        // Gestione dell'errore durante l'invio
-        errorLabel.setText("Errore durante l'invio dell'email: " + e.getMessage());
-        successLabel.setText(""); // Cancella eventuali successi
+            /** Pulisce i campi (opzionale) */
+            toField.clear();
+            receiversList.clear();
+            subjectField.clear();
+            bodyArea.clear();
+        } catch (IOException e) {
+            // Gestione dell'errore durante l'invio
+            errorLabel.setText("Errore durante l'invio dell'email: " + e.getMessage());
+            successLabel.setText(""); // Cancella eventuali successi
+        }
     }
-}
 
     /** Funzione per tornare alla sezione Inbox */
     @FXML

@@ -11,6 +11,20 @@ public class MessageService {
      * @return lista di messaggi e la aggiunge alla memoria del server
      */
     private int email_file_pointer = 0; //Per gestire l'invio delle mail nuove al client
+
+    /**
+     * DA CHIAMARE OGNI VOLTA CHE SI FA LOGOUT*/
+    public void reset_file_pointer() {
+        this.email_file_pointer = 0;
+    }
+
+    /**
+     * DA CHIAMARE PRIMA O DOPO L'OPERAZIONE DI DELETE DELLE MAIL
+     * AMOUNT = NUMERO DI MAIL ELIMINATE
+     * NECESSARIO PER MANTENERE IL POINTER COERENTE*/
+    public void decrease_file_pointer(int amount) {
+        this.email_file_pointer -= amount;
+    }
     /**
      *  Metodo per caricare i messaggi dal file in memoria
      * @return lista di messaggi

@@ -12,7 +12,6 @@ public class Mail implements Serializable{
      * Contiene i metodi per la conversione in stringa e viceversa, gestione della selezione,
      * e i campi condivisi tra Mail e Message.
      */
-    private String id;
     private String sender;
     private String title;
     private String content;
@@ -22,15 +21,13 @@ public class Mail implements Serializable{
 
     /**
      * Costruttore per la creazione di una Mail
-     * @param id : id del messaggio
      * @param sender : mittente della mail
      * @param title : oggetto della mail
      * @param content : contenuto della mail
      * @param receivers : array dei destinatari
      * @param date : data di invio della mail
      */
-    public Mail(String id, String sender, String title, String content, String[] receivers, LocalDateTime date) {
-        this.id = id;
+    public Mail(String sender, String title, String content, String[] receivers, LocalDateTime date) {
         this.sender = sender;
         this.title = title;
         this.content = content;
@@ -42,23 +39,15 @@ public class Mail implements Serializable{
     /**
      * Metodo di conversione da una riga di testo in un oggetto Mail.
      * @param line : la riga da convertire
-     * @return : oggetto Mail creato dalla riga
+     * @return: oggetto Mail creato dalla riga
      */
     public static Mail fromLine(String line) {
         String[] parts = line.split("§");
-        String[] receivs = parts[4].split(",");
-        return new Mail(parts[0], parts[1], parts[2], parts[3], receivs, LocalDateTime.parse(parts[5]));
+        String[] receivs = parts[3].split(",");
+        return new Mail(parts[0], parts[1], parts[2], receivs, LocalDateTime.parse(parts[4]));
     }
 
     // Getter e setter per tutti i campi
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getSender() {
         return sender;
@@ -124,6 +113,6 @@ public class Mail implements Serializable{
      */
     @Override
     public String toString() {
-        return id + "§" + sender + "§" + title + "§" + content + "§" + String.join(",", receivers) + "§" + date;
+        return sender + "§" + title + "§" + content + "§" + String.join(",", receivers) + "§" + date;
     }
 }

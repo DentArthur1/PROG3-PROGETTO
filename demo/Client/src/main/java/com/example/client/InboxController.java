@@ -111,6 +111,7 @@ public class InboxController {
         emailTable.setItems(emailList);
     }
 
+    /** Avvia un task periodico per comunicare con il server*/
     private void startPingTask() {
         pingTimer = new Timer(true);
         pingTimer.scheduleAtFixedRate(new TimerTask() {
@@ -120,8 +121,9 @@ public class InboxController {
             }
         }, 0, 5000); // Ping every 5 seconds
     }
+
+    /** Avvia un task periodico per aggiornare le email */
     private void startEmailUpdateTask() {
-        /** Avvia un task periodico per aggiornare le email */
         emailUpdateTimer = new Timer(true); // Timer come thread daemon
         emailUpdateTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -139,6 +141,27 @@ public class InboxController {
                 });
             }
         }, 10000, 10000); // Aggiorna ogni 10 secondi
+    }
+
+    /**
+     * Ferma l'aggiornamento delle mail quando cambio scena o faccio logout (CAMBIANDO CONTROLLER E TORNANDO ALLA INBOX SI PERDE IL RIFERIMENTO AL TIMER PRECEDENTE
+     * RENDENDO INUTILE OGNI OPERAZIONE DI CANCELLAZIONE DEL TIMER PRECENDENTE)*/
+    private void stop_email_update(){
+        // Fermiamo il timer di aggiornamento delle email
+        if (emailUpdateTimer != null) {
+            emailUpdateTimer.cancel();  // Interrompe il timer e i relativi thread
+            emailUpdateTimer = null;    // Impostiamo il riferimento a null per evitare uso futuro
+        }
+    }
+
+    /**
+     * Ferma la funzione di ping del server(CAMBIANDO CONTROLLER E TORNANDO ALLA INBOX SI PERDE IL RIFERIMENTO AL TIMER PRECEDENTE
+     * RENDENDO INUTILE OGNI OPERAZIONE DI CANCELLAZIONE DEL TIMER PRECEDENTE)*/
+    private void stop_ping_timer(){
+        if (pingTimer != null) {
+            pingTimer.cancel();
+            pingTimer = null;
+        }
     }
 
     private void updateServerStatus() {
@@ -202,9 +225,10 @@ public class InboxController {
 
     @FXML
     protected void handleEmailClick() {
+        stop_email_update();
+        stop_ping_timer();
         /** Ottieni l'email selezionata dalla TableView */
         Mail selectedMail = emailTable.getSelectionModel().getSelectedItem();
-
         if (selectedMail != null) {
             /** Se ho selezionato una mail, entro nella sezione "Visione mail" */
             EmailController email_controller = Structures.change_scene((Stage) emailTable.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Email.fxml")));
@@ -216,26 +240,54 @@ public class InboxController {
     @FXML
     protected void handleLogout() {
         /** Torno alla schermata di login */
+        stop_email_update();
+        stop_ping_timer();
         Structures.change_scene((Stage) emailTable.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Login.fxml")));
+        try {
+            Socket clientSocket = new Socket("localhost", Structures.PORT);
+            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+            Request<String> logout_request = new Request<>(Structures.LOGOUT, "");
+            output.writeObject(logout_request);
+
+        } catch (Exception e){
+            System.out.println("Failed requesting logout.");
+        }
+
     }
 
     @FXML
     protected void handleCompose() {
         /** Accedo alla sezione "Composizione mail" */
+        stop_email_update();
+        stop_ping_timer();
         sendController send_controller = Structures.change_scene((Stage) emailTable.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Send.fxml")));
         send_controller.backup = backup;
     }
 
+    /** Rimuove le email selezionate */
     @FXML
     protected void handleDelete() {
-        /** Rimuove le email selezionate */
-        ObservableList<Mail> selectedEmails = FXCollections.observableArrayList();
+        /**
+         * Ottengo le mail selezionate*/
+        ArrayList<Mail> selectedEmails = new ArrayList<>();
         for (Mail email : emailList) {
             if (email.isSelected()) {
                 selectedEmails.add(email);
             }
         }
+        //ELimino le mail localmente, dalla lista dela inbox
         emailList.removeAll(selectedEmails);
+        /**
+         * Invio la richiesta di eliminazione al server*/
+        try {
+            Socket clientSocket = new Socket("localhost", Structures.PORT);
+            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+            Request<ArrayList<Mail>> mails_to_delete = new Request<>(Structures.DELETE, selectedEmails);
+            output.writeObject(mails_to_delete);
+
+        } catch (Exception e){
+            System.out.println("Failed deleting mails.");
+        }
 
         /** Aggiorna il backup per riflettere la nuova lista di email */
         backup.setEmailBackup(FXCollections.observableArrayList(emailList));
@@ -250,4 +302,5 @@ public class InboxController {
         this.emailList = backup.getEmailBackup();
         set_user_email(backup.getUserEmailBackup());
     }
+
 }
