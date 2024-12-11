@@ -129,8 +129,12 @@ public class InboxController {
                 Platform.runLater(() -> {
                     ObservableList<Mail> updatedEmails = get_new_emails();
                     if (updatedEmails != null) {
-                        emailList.setAll(updatedEmails); // Aggiorna la lista delle email
-                        backup.setEmailBackup(updatedEmails);
+                        for (Mail email : updatedEmails) {
+                            if (!emailList.contains(email)) { // Verifica se l'email è già presente
+                                emailList.add(email);        // Aggiunge solo le nuove email
+                            }
+                        }
+                        backup.setEmailBackup(FXCollections.observableArrayList(emailList)); // Aggiorna il backup
                     }
                 });
             }
@@ -196,28 +200,6 @@ public class InboxController {
         return parsed_mails;
     }
 
-
-    private void addEmailToView(Mail email) {
-        /** Rende visibile la mail i-esima */
-        HBox emailBox = new HBox(10);
-        //Proprietà della checkbox
-        CheckBox selectBox = new CheckBox();
-        selectBox.selectedProperty().bindBidirectional(email.selectedProperty());
-        /** Proprietà dei campi dati delle mail */
-        GridPane gridPane = new GridPane();
-        gridPane.setHgap(10); /** Spazio orizzontale tra le colonne */
-
-        Text recipientText = new Text(email.getSender());
-        recipientText.setFont(Font.font(14)); /** Imposta il font più grande */
-
-        Text subjectText = new Text(email.getTitle());
-        subjectText.setFont(Font.font(14)); /** Imposta il font più grande */
-        /** Separa l'indirizzo email dall'oggetto */
-        gridPane.add(recipientText, 0, 0);
-        gridPane.add(subjectText, 0, 1);
-
-    }
-
     @FXML
     protected void handleEmailClick() {
         /** Ottieni l'email selezionata dalla TableView */
@@ -255,11 +237,11 @@ public class InboxController {
         }
         emailList.removeAll(selectedEmails);
 
-        /** Aggiorna la vista della lista delle email */
-        for (Mail email : emailList) {
-            addEmailToView(email);
-        }
+        /** Aggiorna il backup per riflettere la nuova lista di email */
+        backup.setEmailBackup(FXCollections.observableArrayList(emailList));
 
+        /** Aggiorna la vista della lista delle email */
+        emailTable.refresh(); // Aggiorna la vista della TableView
     }
 
     private void restore_inbox(SessionBackup sessionBackup) {

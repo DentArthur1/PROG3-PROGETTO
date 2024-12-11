@@ -29,6 +29,9 @@ public class EmailController {
 
     public SessionBackup backup;
 
+    @FXML
+    public Label bodyLabel;
+
 
     public void set_email(Mail example){
         /** Funzione usata per selezionare l'email da visualizzare */
@@ -48,6 +51,7 @@ public class EmailController {
         dateLabel.setText(example.getDate().toString());
         subjectLabel.setText(example.getTitle());
         senderLabel.setText(example.getSender());
+        bodyLabel.setText(example.getContent());
         fill_receivers(example);
     }
 

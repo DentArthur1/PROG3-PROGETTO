@@ -40,9 +40,7 @@
             <!-- Corpo del messaggio -->
             <VBox spacing="10" style="-fx-margin-top: 20px;">
                 <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Body:" />
-                <TextFlow>
-                    <Text fx:id="bodyText" style="-fx-font-size: 16px; -fx-text-fill: #34495e;" text="This is where the body of the email will appear." />
-                </TextFlow>
+                <Label fx:id="bodyLabel" style="-fx-font-size: 16px; color: #2980b9;" text="Content" />
             </VBox>
         </VBox>
     </center>

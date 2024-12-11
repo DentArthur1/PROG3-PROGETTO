@@ -10,7 +10,7 @@ public class MessageService {
      * Metodo per caricare i messaggi dal file
      * @return lista di messaggi e la aggiunge alla memoria del server
      */
-    private int email_file_pointer = 0;
+    private int email_file_pointer = 0; //Per gestire l'invio delle mail nuove al client
     /**
      *  Metodo per caricare i messaggi dal file in memoria
      * @return lista di messaggi
