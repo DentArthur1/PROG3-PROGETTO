@@ -7,18 +7,17 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
-/**
- * Gestisce le connessioni multiple con i client.
- */
 public class ClientManager {
 
     private Socket clientSocket;
     private final MessageService messageService;
     private ObjectOutputStream output;
     private ObjectInputStream input;
+    private final ServerController serverController;
 
-    public ClientManager() {
+    public ClientManager(ServerController serverController) {
         this.messageService = new MessageService();
+        this.serverController = serverController;
     }
 
     public void set_socket(Socket socket) {
@@ -27,53 +26,48 @@ public class ClientManager {
 
     public void handleClient() {
         try {
-            // Inizializza gli stream all'inizio
             output = new ObjectOutputStream(clientSocket.getOutputStream());
-            output.flush(); // Invia l'header
+            output.flush();
             input = new ObjectInputStream(clientSocket.getInputStream());
 
             Request<?> request = readDataFromClient();
 
-            // Switch-case per gestire le richieste
             switch (request.getRequestCode()) {
                 case Structures.UPDATE_MAILS -> handleUpdateMails((Request<String>) request);
                 case Structures.PING -> handlePing();
                 case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
                 case Structures.LOGIN_CHECK -> handleLoginCheck((Request<String>) request);
                 case Structures.DEST_CHECK -> handleDestCheck((Request<String>) request);
-                default -> System.err.println("Codice richiesta non riconosciuto: " + request.getRequestCode());
+                default -> serverController.addLog("Codice richiesta non riconosciuto: " + request.getRequestCode());
             }
 
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Errore nella gestione del client: ");
-            e.printStackTrace();
+            serverController.addLog("Errore nella gestione del client: " + e.getMessage());
         } finally {
             closeConnection();
         }
     }
 
     private void handleUpdateMails(Request<String> request_with_mail) throws IOException {
-
         ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload());
-        //Ottengo le mail
         Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, messages);
         sendResponse(response);
-        System.out.println("Email inviate con successo!");
+        serverController.addLog("Email inviate con successo!");
     }
 
     private void handlePing() throws IOException {
         Request<String> response = new Request<>(Structures.PING, "pong");
         sendResponse(response);
-        System.out.println("Ping gestito correttamente!");
+        serverController.addLog("Ping gestito correttamente!");
     }
 
     private void handleSendMail(Request<Mail> request) {
         try {
             Mail mail = request.getPayload();
             saveMessage(mail);
-            System.out.println("Messaggio salvato: " + mail);
+            serverController.addLog("Messaggio salvato: " + mail);
         } catch (IOException e) {
-            System.err.println("Errore durante il salvataggio del messaggio: " + e.getMessage());
+            serverController.addLog("Errore durante il salvataggio del messaggio: " + e.getMessage());
         }
     }
 
@@ -96,15 +90,16 @@ public class ClientManager {
             writer.write(message.toString());
         }
     }
+
     private void handleLoginCheck(Request<String> request) throws IOException {
         String userEmail = request.getPayload();
         boolean userExists = checkUserExists(userEmail);
         int responseCode;
         if (userExists) {
-            System.out.println("User " + userEmail + " found. Sending LOGIN_OK.");
+            serverController.addLog("User " + userEmail + " found. Sending LOGIN_OK.");
             responseCode = Structures.LOGIN_OK;
         } else {
-            System.out.println("User " + userEmail + " not found. Sending LOGIN_ERROR.");
+            serverController.addLog("User " + userEmail + " not found. Sending LOGIN_ERROR.");
             responseCode = Structures.LOGIN_ERROR;
         }
 
@@ -117,10 +112,10 @@ public class ClientManager {
         boolean userExists = checkUserExists(userEmail);
         int responseCode;
         if (userExists) {
-            System.out.println("User " + userEmail + " found. Sending DEST_OK.");
+            serverController.addLog("User " + userEmail + " found. Sending DEST_OK.");
             responseCode = Structures.DEST_OK;
         } else {
-            System.out.println("User " + userEmail + " not found. Sending DEST_ERROR.");
+            serverController.addLog("User " + userEmail + " not found. Sending DEST_ERROR.");
             responseCode = Structures.DEST_ERROR;
         }
 
@@ -139,13 +134,14 @@ public class ClientManager {
         }
         return false;
     }
+
     private void closeConnection() {
         try {
             if (input != null) input.close();
             if (output != null) output.close();
             clientSocket.close();
         } catch (IOException e) {
-            System.err.println("Errore durante la chiusura della connessione: " + e.getMessage());
+            serverController.addLog("Errore durante la chiusura della connessione: " + e.getMessage());
         }
     }
 }

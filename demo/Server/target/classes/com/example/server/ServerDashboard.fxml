@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
@@ -19,4 +20,7 @@
 
     <!-- Bottone per spegnere il server -->
     <Button fx:id="stopButton" text="Spegni Server" onAction="#stopServer" />
+
+    <!-- Lista scrollabile dei log -->
+    <ListView fx:id="logListView" prefHeight="600.0" prefWidth="600.0" />
 </VBox>
