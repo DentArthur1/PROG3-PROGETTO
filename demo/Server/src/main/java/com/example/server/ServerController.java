@@ -1,27 +1,23 @@
 package com.example.server;
 
-import com.example.shared.Structures;
+import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 
-/**
- * Classe principale che gestisce l'interfaccia grafica e avvia il server.
- */
 public class ServerController {
 
     @FXML
     public Button stopButton; // Bottone per spegnere il server
     @FXML
     private Button startButton; // Bottone per avviare il server
+    @FXML
+    private ListView<String> logListView; // ListView per i log
 
     private ServerManager serverManager; // Gestione separata del server
 
-    /**
-     * Avvia il server in background e aggiorna l'interfaccia.
-     */
-
     public void initialize() {
-        // Rende il bottone di spegnimento inizialmente non visibile
         stopButton.setDisable(true);
         stopButton.setVisible(false);
     }
@@ -29,32 +25,31 @@ public class ServerController {
     @FXML
     public void startServer() {
         if (serverManager == null) {
-            serverManager = new ServerManager();
+            serverManager = new ServerManager(this);
         }
         serverManager.start();
 
-        // Tolgo il bottone di start e rendo visibile il bottone di stop
         startButton.setDisable(true);
         startButton.setVisible(false);
 
         stopButton.setDisable(false);
         stopButton.setVisible(true);
-
     }
 
-    /**
-     * Arresta il server
-     */
+    @FXML
     public void stopServer() {
         if (serverManager != null) {
             serverManager.stop();
 
-            //Rendo visibile il bottone start e invisibile il bottone stop
             startButton.setDisable(false);
             startButton.setVisible(true);
 
             stopButton.setVisible(false);
             stopButton.setDisable(true);
         }
+    }
+
+    public void addLog(String message) {
+        Platform.runLater(() -> logListView.getItems().add(message));
     }
 }
