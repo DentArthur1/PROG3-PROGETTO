@@ -8,4 +8,5 @@ a@sigmamail.com§Ciao§Addio§raffaele@sigmamail.com§2024-12-11T14:35:20.803332
 a@sigmamail.com§A§AAAA§a@sigmamail.com§2024-12-11T14:35:46.189184622
 a@sigmamail.com§LKDJKLDFKJLD§klKLDJVKJLJKL§a@sigmamail.com§2024-12-11T14:40:59.347668416
 a@sigmamail.com§a§a§a@sigmamail.com§2024-12-11T14:48:22.978986871
-a@sigmamail.com§afsgdafafdgdf§dfagadfgdfgfdg§a@sigmamail.com§2024-12-11T14:48:42.224398995
+a@sigmamail.com§afsgdafafdgdf§dfagadfgdfgfdg§daniele@sigmamail.com§2024-12-11T14:48:42.224398995
+daniele@sigmamail.com§prova testo lungo§ciao afsgdafafdgdf sono afsgdafafdgdf daniele afsgdafafdgdf questa afsgdafafdgdf è afsgdafafdgdf una afsgdafafdgdf prova afsgdafafdgdf di afsgdafafdgdf messaggio afsgdafafdgdf di afsgdafafdgdf testo afsgdafafdgdf lungo§daniele@sigmamail.com§2024-12-12T12:50:49.176106400
