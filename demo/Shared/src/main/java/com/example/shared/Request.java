@@ -7,17 +7,23 @@ public class Request<T> implements Serializable {
      */
 
     private int REQUEST_CODE;
+    private String AUTH_TOKEN;
     private T payload; // Dichiarazione di un riferimento generico
 
     // Costruttore
-    public Request(int requestCode, T payload) {
+    public Request(int requestCode, T payload, String authToken) {
         this.REQUEST_CODE = requestCode;
         this.payload = payload;
+        this.AUTH_TOKEN = authToken;
     }
 
     // Getter e Setter
     public int getRequestCode() {
         return REQUEST_CODE;
+    }
+
+    public String getAuthToken() {
+        return AUTH_TOKEN;
     }
 
     public void setRequestCode(int requestCode) {

@@ -6,6 +6,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -58,7 +60,17 @@ public class Structures {
         /**DOPO AVER CAMBIATO SCENA È NECESSARIO "PASSARE" AL NUOVO CONTROLLER IL BACKUP*/
     }
 
-
+    public static boolean checkUserExists(String email) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(Structures.USER_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().equalsIgnoreCase(email)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     public static boolean isValidEmail(String email) {
         /**Metodo per la verifica della sintassi delle mail*/
         return Pattern.matches(EMAIL_REGEX, email);

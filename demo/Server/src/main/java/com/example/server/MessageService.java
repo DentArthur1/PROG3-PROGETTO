@@ -3,6 +3,7 @@ package com.example.server;
 import com.example.shared.Mail;
 import com.example.shared.Structures;
 import java.io.*;
+import java.net.Socket;
 import java.util.*;
 
 public class MessageService {
@@ -10,46 +11,36 @@ public class MessageService {
      * Metodo per caricare i messaggi dal file
      * @return lista di messaggi e la aggiunge alla memoria del server
      */
-    private int email_file_pointer = 0; //Per gestire l'invio delle mail nuove al client
+    private ServerManager servermanager;
 
-    /**
-     * DA CHIAMARE OGNI VOLTA CHE SI FA LOGOUT*/
-    public void reset_file_pointer() {
-        this.email_file_pointer = 0;
+    public MessageService(ServerManager servermanager) {
+        this.servermanager = servermanager;
     }
 
-    /**
-     * DA CHIAMARE PRIMA O DOPO L'OPERAZIONE DI DELETE DELLE MAIL
-     * AMOUNT = NUMERO DI MAIL ELIMINATE
-     * NECESSARIO PER MANTENERE IL POINTER COERENTE*/
-    public void decrease_file_pointer(int amount) {
-        this.email_file_pointer -= amount;
-    }
-    /**
-     *  Metodo per caricare i messaggi dal file in memoria
-     * @return lista di messaggi
-     */
-    public ArrayList<Mail> loadMessages() {
-        System.out.println("Loading Messages from " + this.email_file_pointer);
+    public ArrayList<Mail> loadMessages(String email) {
+        System.out.println("Loading Messages from " + servermanager.getClientFilePointer(email));
         ArrayList<Mail> messages = new ArrayList<>();
-        // Carica il file da resources
+        int lineNumber = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(Structures.FILE_PATH))) {
             String line;
-            int lineNumber = 0; // Contatore delle righe
+            int pointer = servermanager.getClientFilePointer(email); // Valore del file_pointer
+
             while ((line = reader.readLine()) != null) {
-                lineNumber++;
-                if (lineNumber <= this.email_file_pointer) {
-                    continue; // Salta fino alla riga indicata da file_pointer
+                if (lineNumber < pointer) { // Salta solo le righe con indice < pointer
+                    lineNumber++;
+                    continue;
                 }
                 messages.add(Mail.fromLine(line)); // Aggiungi il messaggio dalla linea
+                lineNumber++;
             }
         } catch (IOException e) {
             System.err.println("Errore durante la lettura del file: " + e.getMessage());
         }
-        //Aggiorno il pointer incrementale al file
-        this.email_file_pointer += messages.size();
+        // Aggiorna il file_pointer del client che ha inviato l'email
+        servermanager.updateClientFilePointer(email, lineNumber);
         return messages;
     }
+
 
     /**
      * Metodo per ottenere le mail ricevute da un determinato utente, da mettere nella inbox dopo il login
@@ -57,8 +48,8 @@ public class MessageService {
      * @return lista di email ricevute dall'utente
      *
      */
-    public ArrayList<Mail> getMessagesByReceiver(String receiver) {
-        ArrayList<Mail> allMessages = loadMessages();
+    public ArrayList<Mail> getMessagesByReceiver(String receiver, String email) {
+        ArrayList<Mail> allMessages = loadMessages(email);
         ArrayList<Mail> filteredMessages = new ArrayList<>();
         for (Mail message : allMessages) {
             for (String msg_receiver: message.getReceivers()){

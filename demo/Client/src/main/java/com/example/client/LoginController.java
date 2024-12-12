@@ -34,7 +34,7 @@ public class LoginController {
                  ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
                  ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
 
-                Request<String> request = new Request<>(Structures.LOGIN_CHECK, user_mail);
+                Request<String> request = new Request<>(Structures.LOGIN_CHECK, user_mail ,user_mail);
                 output.writeObject(request);
                 output.flush();
 

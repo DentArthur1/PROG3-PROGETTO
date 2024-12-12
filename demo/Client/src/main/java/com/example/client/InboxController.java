@@ -182,7 +182,7 @@ public class InboxController {
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
 
-            Request<String> ping_request = new Request<>(Structures.PING, "ping");
+            Request<String> ping_request = new Request<>(Structures.PING, "ping", backup.getUserEmailBackup());
             output.writeObject(ping_request);
             Request<?> pong_request = (Request<?>) input.readObject();
 
@@ -202,7 +202,7 @@ public class InboxController {
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
 
-            Request<String> mail_update_request = new Request<>(Structures.UPDATE_MAILS, backup.getUserEmailBackup());
+            Request<String> mail_update_request = new Request<>(Structures.UPDATE_MAILS, backup.getUserEmailBackup(), backup.getUserEmailBackup());
             output.writeObject(mail_update_request);
 
             Request<?> new_mails = (Request<?>) input.readObject();
@@ -246,7 +246,7 @@ public class InboxController {
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-            Request<String> logout_request = new Request<>(Structures.LOGOUT, "");
+            Request<String> logout_request = new Request<>(Structures.LOGOUT, "", backup.getUserEmailBackup());
             output.writeObject(logout_request);
 
         } catch (Exception e){
@@ -282,7 +282,7 @@ public class InboxController {
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-            Request<ArrayList<Mail>> mails_to_delete = new Request<>(Structures.DELETE, selectedEmails);
+            Request<ArrayList<Mail>> mails_to_delete = new Request<>(Structures.DELETE, selectedEmails, backup.getUserEmailBackup());
             output.writeObject(mails_to_delete);
 
         } catch (Exception e){

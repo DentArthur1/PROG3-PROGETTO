@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 public class Mail implements Serializable{
     /**
@@ -43,6 +44,7 @@ public class Mail implements Serializable{
      */
     public static Mail fromLine(String line) {
         String[] parts = line.split("§");
+        System.out.println(Arrays.toString(parts));
         String[] receivs = parts[3].split(",");
         return new Mail(parts[0], parts[1], parts[2], receivs, LocalDateTime.parse(parts[4]));
     }
@@ -115,4 +117,5 @@ public class Mail implements Serializable{
     public String toString() {
         return sender + "§" + title + "§" + content + "§" + String.join(",", receivers) + "§" + date;
     }
+
 }

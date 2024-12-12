@@ -14,38 +14,49 @@ public class ClientManager {
     private ObjectOutputStream output;
     private ObjectInputStream input;
     private final ServerController serverController;
+    private final ServerManager servermanager;
+    private String email; // Email del client
 
-    public ClientManager(ServerController serverController) {
-        this.messageService = new MessageService();
+    public ClientManager(ServerController serverController, ServerManager serverManager, ObjectOutputStream output, ObjectInputStream input, Socket clientSocket) {
+        this.messageService = new MessageService(serverManager);
+        this.output = output;
+        this.input = input;
         this.serverController = serverController;
+        this.servermanager = serverManager;
+        this.clientSocket = clientSocket;
     }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
 
     public void set_socket(Socket socket) {
         this.clientSocket = socket;
     }
 
-    public void handleClient() {
+    public void handleClient(Request<?> request) {
         try {
-            // Inizializza gli stream all'inizio
-            output = new ObjectOutputStream(clientSocket.getOutputStream());
-            output.flush(); // Invia l'header
-            input = new ObjectInputStream(clientSocket.getInputStream());
-
-            Request<?> request = readDataFromClient();
-
             // Switch-case per gestire le richieste
+            setEmail(request.getAuthToken());
             switch (request.getRequestCode()) {
                 case Structures.UPDATE_MAILS -> handleUpdateMails((Request<String>) request);
                 case Structures.PING -> handlePing();
                 case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
-                case Structures.LOGIN_CHECK -> handleLoginCheck((Request<String>) request);
                 case Structures.DEST_CHECK -> handleDestCheck((Request<String>) request);
                 case Structures.LOGOUT -> handleLogout();
                 case Structures.DELETE -> handleDelete((Request<ArrayList<Mail>>) request);
-                default -> serverController.addLog("Codice richiesta non riconosciuto: " + request.getRequestCode());
+                default -> {
+                    serverController.addLog("Codice richiesta non riconosciuto: " + request.getRequestCode());
+                    throw new Exception("Codice richiesta sconosciuto");
+                }
             }
 
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (Exception e) {
             serverController.addLog("Errore nella gestione del client: ");
             e.printStackTrace();
         } finally {
@@ -53,7 +64,8 @@ public class ClientManager {
         }
     }
     private void handleLogout() {
-        messageService.reset_file_pointer();
+        // Aggiorna il file_pointer del client che ha fatto logout
+        servermanager.updateClientFilePointer(this.getEmail(), 0);
         serverController.addLog("Logout request received, resetting file pointer.");
     }
     /**
@@ -93,8 +105,10 @@ public class ClientManager {
                 writer.newLine(); // Scrivi ogni riga con una nuova linea
             }
         }
-        // Aggiorno il riferimento al puntatore (nel tuo contesto)
-        this.messageService.decrease_file_pointer(mailStrings.length);
+
+        // Aggiorna il file_pointer del client che ha inviato l'email
+        int newPointer = servermanager.getClientFilePointer(this.getEmail()) - mailStrings.length;
+        servermanager.updateClientFilePointer(this.getEmail(), newPointer);
 
         serverController.addLog("Email deletion success:\n" + emailsToDelete + "\n----> DELETED");
     }
@@ -102,14 +116,14 @@ public class ClientManager {
 
 
     private void handleUpdateMails(Request<String> request_with_mail) throws IOException {
-        ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload());
-        Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, messages);
+        ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload(), this.getEmail());
+        Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, messages, "SERVER");
         sendResponse(response);
         serverController.addLog("Email inviate con successo!");
     }
 
     private void handlePing() throws IOException {
-        Request<String> response = new Request<>(Structures.PING, "pong");
+        Request<String> response = new Request<>(Structures.PING, "pong", "SERVER");
         sendResponse(response);
         serverController.addLog("Ping gestito correttamente!");
     }
@@ -135,34 +149,26 @@ public class ClientManager {
 
     private void saveMessage(Mail message) throws IOException {
         File file = new File(Structures.FILE_PATH);
+
+        // Crea il file se non esiste
         if (!file.exists() && !file.createNewFile()) {
             throw new IOException("Impossibile creare il file: " + Structures.FILE_PATH);
         }
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-            writer.newLine();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH, true))) {
+            if(file.length() != 0) {
+                writer.write("\n");
+            }
             writer.write(message.toString());
         }
     }
 
-    private void handleLoginCheck(Request<String> request) throws IOException {
-        String userEmail = request.getPayload();
-        boolean userExists = checkUserExists(userEmail);
-        int responseCode;
-        if (userExists) {
-            serverController.addLog("User " + userEmail + " found. Sending LOGIN_OK.");
-            responseCode = Structures.LOGIN_OK;
-        } else {
-            serverController.addLog("User " + userEmail + " not found. Sending LOGIN_ERROR.");
-            responseCode = Structures.LOGIN_ERROR;
-        }
 
-        Request<String> response = new Request<>(responseCode, userEmail);
-        sendResponse(response);
-    }
+
 
     private void handleDestCheck(Request<String> request) throws IOException {
         String userEmail = request.getPayload();
-        boolean userExists = checkUserExists(userEmail);
+        boolean userExists = Structures.checkUserExists(userEmail);
         int responseCode;
         if (userExists) {
             serverController.addLog("User " + userEmail + " found. Sending DEST_OK.");
@@ -172,20 +178,8 @@ public class ClientManager {
             responseCode = Structures.DEST_ERROR;
         }
 
-        Request<String> response = new Request<>(responseCode, userEmail);
+        Request<String> response = new Request<>(responseCode, userEmail, "SERVER");
         sendResponse(response);
-    }
-
-    private boolean checkUserExists(String email) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new FileReader(Structures.USER_PATH))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().equalsIgnoreCase(email)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private void closeConnection() {

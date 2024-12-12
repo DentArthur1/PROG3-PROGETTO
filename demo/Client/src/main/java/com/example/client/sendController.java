@@ -67,7 +67,7 @@ public class sendController {
                      ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
                      ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
 
-                    Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario);
+                    Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario, backup.getUserEmailBackup());
                     output.writeObject(request);
                     output.flush();
 
@@ -126,7 +126,7 @@ public class sendController {
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
 
             //Costruisco la richiesta
-            Request<Mail> new_mail_to_send = new Request<>(Structures.SEND_MAIL,new_mail);
+            Request<Mail> new_mail_to_send = new Request<>(Structures.SEND_MAIL,new_mail, backup.getUserEmailBackup());
             output.writeObject(new_mail_to_send);
 
             // Se l'email è inviata con successo
