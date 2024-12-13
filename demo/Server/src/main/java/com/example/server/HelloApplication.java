@@ -13,7 +13,7 @@ public class HelloApplication extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("ServerDashboard.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), Structures.SCENE_WIDTH, Structures.SCENE_HEIGHT);
-        stage.setTitle("Hello!");
+        stage.setTitle("Mail Server");
         stage.setScene(scene);
         stage.show();
     }
