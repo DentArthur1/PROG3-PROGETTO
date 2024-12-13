@@ -21,15 +21,17 @@ public class Mail implements Serializable {
     private LocalDateTime date;
     private transient BooleanProperty selected;
     private int id; // Aggiunto campo ID per tenere traccia dell'ultimo ID della mail
+    private boolean modified; // Aggiunto campo modified per tenere traccia delle modifiche alla mail negli altri client
 
     /**
      * Costruttore per la creazione di una Mail
-     * @param sender : mittente della mail
-     * @param title : oggetto della mail
-     * @param content : contenuto della mail
+     *
+     * @param sender    : mittente della mail
+     * @param title     : oggetto della mail
+     * @param content   : contenuto della mail
      * @param receivers : array dei destinatari
-     * @param date : data di invio della mail
-     * @param id : ID della mail
+     * @param date      : data di invio della mail
+     * @param id        : ID della mail
      */
     public Mail(String sender, String title, String content, String[] receivers, LocalDateTime date, int id) {
         this.sender = sender;
@@ -39,21 +41,35 @@ public class Mail implements Serializable {
         this.date = date;
         this.selected = new SimpleBooleanProperty(false);
         this.id = id;
+        this.modified = false; // Inizializza come non modificata
     }
 
     /**
      * Metodo di conversione da una riga di testo in un oggetto Mail.
+     *
      * @param line : la riga da convertire
      * @return: oggetto Mail creato dalla riga
      */
     public static Mail fromLine(String line) {
         String[] parts = line.split("§");
-        System.out.println(Arrays.toString(parts));
         String[] receivs = parts[3].split(",");
-        return new Mail(parts[0], parts[1], parts[2], receivs, LocalDateTime.parse(parts[4]), Integer.parseInt(parts[5]));
+        Mail mail = new Mail(parts[0], parts[1], parts[2], receivs, LocalDateTime.parse(parts[4]), Integer.parseInt(parts[5]));
+        if (parts.length > 6) {
+            mail.setModified(Boolean.parseBoolean(parts[6])); // Set the modified field if present
+        } else {
+            mail.setModified(false); // Default to false if not present
+        }
+        return mail;
     }
 
     // Getter e setter per tutti i campi
+    public boolean isModified() {
+        return modified;
+    }
+
+    public void setModified(boolean modified) {
+        this.modified = modified;
+    }
 
     public String getSender() {
         return sender;
@@ -142,10 +158,11 @@ public class Mail implements Serializable {
     /**
      * Metodo `toString`.
      * Converte l'oggetto `Mail` in una stringa con un formato specifico.
+     *
      * @return Rappresentazione testuale della mail.
      */
     @Override
     public String toString() {
-        return sender + "§" + title + "§" + content + "§" + String.join(",", receivers) + "§" + date + "§" + id;
+        return sender + "§" + title + "§" + content + "§" + String.join(",", receivers) + "§" + date + "§" + id + "§" + modified;
     }
 }

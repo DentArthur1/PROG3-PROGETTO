@@ -1,3 +1,4 @@
+// ClientManager.java
 package com.example.server;
 
 import com.example.shared.Mail;
@@ -38,7 +39,7 @@ public class ClientManager {
         this.clientSocket = socket;
     }
 
-    public void handleClient(Request<?> request) {
+    public synchronized void handleClient(Request<?> request) {
         try {
             // Switch-case per gestire le richieste
             setEmail(request.getAuthToken());
@@ -62,6 +63,7 @@ public class ClientManager {
             closeConnection();
         }
     }
+
     private synchronized void handleUpdateMails(Request<String> request) {
         try {
             ArrayList<Mail> newMails = messageService.getMessagesByReceiver(request.getPayload(), email);
@@ -72,6 +74,7 @@ public class ClientManager {
             serverController.addLog("Errore durante l'aggiornamento delle mail: " + e.getMessage());
         }
     }
+
     private synchronized void handlePing() {
         try {
             Request<String> response = new Request<>(Structures.PING, "pong", email, 0);
@@ -122,47 +125,40 @@ public class ClientManager {
         }
     }
 
-    // ClientManager.java
     private synchronized void handleDelete(Request<ArrayList<Mail>> request) {
         try {
             ArrayList<Mail> mailsToDelete = request.getPayload();
             ArrayList<Mail> allMails = messageService.loadAllMailfromUser();
 
-            // Print the mails to delete
-            System.out.println("Mails to delete:");
             for (Mail mail : mailsToDelete) {
-                System.out.println(mail);
+                for (Mail existingMail : allMails) {
+                    if (existingMail.equals(mail)) {
+                        List<String> dest = new ArrayList<>(Arrays.asList(existingMail.getReceivers()));
+                        if (dest.size() > 1) {
+                            dest.remove(email);
+                            existingMail.setReceivers(dest.toArray(new String[0]));
+                            existingMail.setModified(true); // Imposta il campo modified a true
+                        } else {
+                            allMails.remove(existingMail);
+                        }
+                        break;
+                    }
+                }
             }
 
-            // Print all mails before deletion
-            System.out.println("All mails:");
-            for (Mail mail : allMails) {
-                System.out.println(mail);
-            }
-
-            // Remove only the selected emails
-            allMails.removeAll(mailsToDelete);
-
-            // Print all mails after deletion
-            System.out.println("Remaining mails:");
-            for (Mail mail : allMails) {
-                System.out.println(mail);
-            }
-
-            // Write the remaining emails back to the file
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH))) {
                 for (Mail mail : allMails) {
                     writer.write(mail.toString());
                     writer.newLine();
                 }
             }
-            serverController.addLog("Mail deleted for: " + email);
+            serverController.addLog("Mail cancellata per: " + email);
         } catch (IOException e) {
-            serverController.addLog("Error during mail deletion: " + e.getMessage());
+            serverController.addLog("Errore durante la cancellazione della mail: " + e.getMessage());
         }
     }
 
-    private void closeConnection() {
+    private synchronized void closeConnection() {
         try {
             if (input != null) input.close();
             if (output != null) output.close();
