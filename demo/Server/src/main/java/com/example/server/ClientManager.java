@@ -34,7 +34,6 @@ public class ClientManager {
         this.email = email;
     }
 
-
     public void set_socket(Socket socket) {
         this.clientSocket = socket;
     }
@@ -63,130 +62,111 @@ public class ClientManager {
             closeConnection();
         }
     }
-    private void handleLogout() {
+    private synchronized void handleUpdateMails(Request<String> request) {
+        try {
+            ArrayList<Mail> newMails = messageService.getMessagesByReceiver(request.getPayload(), email);
+            Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, newMails, email, request.getLastMailId());
+            output.writeObject(response);
+            serverController.addLog("Aggiornamento delle mail inviato a: " + email);
+        } catch (IOException e) {
+            serverController.addLog("Errore durante l'aggiornamento delle mail: " + e.getMessage());
+        }
+    }
+    private synchronized void handlePing() {
+        try {
+            Request<String> response = new Request<>(Structures.PING, "pong", email, 0);
+            output.writeObject(response);
+            serverController.addLog("Ping ricevuto da: " + email);
+        } catch (IOException e) {
+            serverController.addLog("Errore durante il ping: " + e.getMessage());
+        }
+    }
+
+    private synchronized void handleSendMail(Request<Mail> request) {
+        try {
+            Mail newMail = request.getPayload();
+            serverController.addLog("Nuova mail ricevuta da: " + newMail.getSender());
+            // Scrivi la mail nel file
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH, true))) {
+                writer.write(newMail.toString());
+                writer.newLine();
+            }
+            serverController.addLog("Mail salvata con successo.");
+        } catch (IOException e) {
+            serverController.addLog("Errore durante il salvataggio della mail: " + e.getMessage());
+        }
+    }
+
+    private synchronized void handleDestCheck(Request<String> request) {
+        try {
+            String destEmail = request.getPayload();
+            boolean destExists = Structures.checkUserExists(destEmail);
+            int responseCode = destExists ? Structures.DEST_OK : Structures.DEST_ERROR;
+            Request<String> response = new Request<>(responseCode, destEmail, email, request.getLastMailId());
+            output.writeObject(response);
+            serverController.addLog("Verifica destinatario per: " + destEmail + " esito: " + (destExists ? "OK" : "ERROR"));
+        } catch (IOException e) {
+            serverController.addLog("Errore durante la verifica del destinatario: " + e.getMessage());
+        }
+    }
+
+    private synchronized void handleLogout() {
         // Aggiorna il file_pointer del client che ha fatto logout
         servermanager.updateClientFilePointer(this.getEmail(), 0);
         serverController.addLog("Logout request received, resetting file pointer.");
+        try {
+            if (output != null) output.close();
+            clientSocket.close();
+        } catch (IOException e) {
+            serverController.addLog("Errore durante la chiusura della connessione: " + e.getMessage());
+        }
     }
-    /**
-     * ELIMINA LE MAIL DAL SERVER*/
-    private void handleDelete(Request<ArrayList<Mail>> request) throws IOException {
-        // Converto in un array di stringhe
-        String[] mailStrings = new String[request.getPayload().size()];
-        for (int i = 0; i < request.getPayload().size(); i++) {
-            mailStrings[i] = request.getPayload().get(i).toString(); // Chiama toString() su ogni Mail
-        }
 
-        // Ottieni l'elenco di email da eliminare come un Set per confronti più rapidi
-        Set<String> emailsToDelete = new HashSet<>(Arrays.asList(mailStrings));
+    // ClientManager.java
+    private synchronized void handleDelete(Request<ArrayList<Mail>> request) {
+        try {
+            ArrayList<Mail> mailsToDelete = request.getPayload();
+            ArrayList<Mail> allMails = messageService.loadAllMailfromUser();
 
-        // File da modificare
-        File file = new File(Structures.FILE_PATH);
+            // Print the mails to delete
+            System.out.println("Mails to delete:");
+            for (Mail mail : mailsToDelete) {
+                System.out.println(mail);
+            }
 
-        if (!file.exists()) {
-            serverController.addLog("Il file non esiste: " + Structures.FILE_PATH);
-            return;
-        }
-        // Leggi tutto il contenuto del file in memoria e filtra le righe da eliminare
-        List<String> filteredLines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String trimmedLine = line.trim();
-                if (!emailsToDelete.contains(trimmedLine)) {
-                    filteredLines.add(line); // Aggiungi solo le righe che non devono essere eliminate
+            // Print all mails before deletion
+            System.out.println("All mails:");
+            for (Mail mail : allMails) {
+                System.out.println(mail);
+            }
+
+            // Remove only the selected emails
+            allMails.removeAll(mailsToDelete);
+
+            // Print all mails after deletion
+            System.out.println("Remaining mails:");
+            for (Mail mail : allMails) {
+                System.out.println(mail);
+            }
+
+            // Write the remaining emails back to the file
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH))) {
+                for (Mail mail : allMails) {
+                    writer.write(mail.toString());
+                    writer.newLine();
                 }
             }
-        }
-        // Scrivi nuovamente il contenuto filtrato nel file, sovrascrivendo il vecchio contenuto
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (String line : filteredLines) {
-                writer.write(line);
-                writer.newLine(); // Scrivi ogni riga con una nuova linea
-            }
-        }
-
-        // Aggiorna il file_pointer del client che ha inviato l'email
-        int newPointer = servermanager.getClientFilePointer(this.getEmail()) - mailStrings.length;
-        servermanager.updateClientFilePointer(this.getEmail(), newPointer);
-
-        serverController.addLog("Email deletion success:\n" + emailsToDelete + "\n----> DELETED");
-    }
-
-
-
-    private void handleUpdateMails(Request<String> request_with_mail) throws IOException {
-        ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload(), this.getEmail());
-        Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, messages, "SERVER");
-        sendResponse(response);
-        serverController.addLog("Email inviate con successo!");
-    }
-
-    private void handlePing() throws IOException {
-        Request<String> response = new Request<>(Structures.PING, "pong", "SERVER");
-        sendResponse(response);
-        serverController.addLog("Ping gestito correttamente!");
-    }
-
-    private void handleSendMail(Request<Mail> request) {
-        try {
-            Mail mail = request.getPayload();
-            saveMessage(mail);
-            serverController.addLog("Messaggio salvato: " + mail);
+            serverController.addLog("Mail deleted for: " + email);
         } catch (IOException e) {
-            serverController.addLog("Errore durante il salvataggio del messaggio: " + e.getMessage());
+            serverController.addLog("Error during mail deletion: " + e.getMessage());
         }
-    }
-
-    private Request<?> readDataFromClient() throws IOException, ClassNotFoundException {
-        return (Request<?>) input.readObject();
-    }
-
-    private void sendResponse(Request<?> response) throws IOException {
-        output.writeObject(response);
-        output.flush();
-    }
-
-    private void saveMessage(Mail message) throws IOException {
-        File file = new File(Structures.FILE_PATH);
-
-        // Crea il file se non esiste
-        if (!file.exists() && !file.createNewFile()) {
-            throw new IOException("Impossibile creare il file: " + Structures.FILE_PATH);
-        }
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH, true))) {
-            if(file.length() != 0) {
-                writer.write("\n");
-            }
-            writer.write(message.toString());
-        }
-    }
-
-
-
-
-    private void handleDestCheck(Request<String> request) throws IOException {
-        String userEmail = request.getPayload();
-        boolean userExists = Structures.checkUserExists(userEmail);
-        int responseCode;
-        if (userExists) {
-            serverController.addLog("User " + userEmail + " found. Sending DEST_OK.");
-            responseCode = Structures.DEST_OK;
-        } else {
-            serverController.addLog("User " + userEmail + " not found. Sending DEST_ERROR.");
-            responseCode = Structures.DEST_ERROR;
-        }
-
-        Request<String> response = new Request<>(responseCode, userEmail, "SERVER");
-        sendResponse(response);
     }
 
     private void closeConnection() {
         try {
             if (input != null) input.close();
             if (output != null) output.close();
-            clientSocket.close();
+            if (clientSocket != null && !clientSocket.isClosed()) clientSocket.close();
         } catch (IOException e) {
             serverController.addLog("Errore durante la chiusura della connessione: " + e.getMessage());
         }

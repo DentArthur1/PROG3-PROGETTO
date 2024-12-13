@@ -1,32 +1,34 @@
 package com.example.shared;
 
-
 import javafx.collections.ObservableList;
 
 public class SessionBackup {
 
     /**
-     * Questa classe è progettata per gestire il backup della sessione del client.
-     * È utile in caso di perdita di connessione o per un utilizzo del servizio offline
+     * This class is designed to manage the client's session backup.
+     * It is useful in case of connection loss or for offline service usage.
      */
 
     private ObservableList<Mail> emailBackup;
     private String userEmailBackup;
-    private boolean sessionStarted; /** flag per indicare se una sessione è attiva */
+    private boolean sessionStarted; // Flag to indicate if a session is active
+    private int lastMailId; // Added field to track the last mail ID
 
     public SessionBackup(String userEmailBackup) {
         this.userEmailBackup = userEmailBackup;
     }
 
-    public void startSession(ObservableList<Mail> emailBackup) {
-        /** Metodo per iniziare una nuova sessione Inbox con le email date come parametro */
+    public void startSession(ObservableList<Mail> emailBackup, int lastMailId) {
+        // Method to start a new Inbox session with the given emails and last mail ID
         setEmailBackup(emailBackup);
+        setLastMailId(lastMailId);
         sessionStarted = true;
     }
 
     public ObservableList<Mail> getEmailBackup() {
         return emailBackup;
     }
+
     public void setEmailBackup(ObservableList<Mail> emailBackup) {
         this.emailBackup = emailBackup;
     }
@@ -39,4 +41,11 @@ public class SessionBackup {
         return sessionStarted;
     }
 
+    public int getLastMailId() {
+        return lastMailId;
+    }
+
+    public void setLastMailId(int lastMailId) {
+        this.lastMailId = lastMailId;
+    }
 }

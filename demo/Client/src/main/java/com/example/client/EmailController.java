@@ -12,7 +12,6 @@ import javafx.stage.Stage;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-
 public class EmailController {
     /** Classe controller email per gestire le operazione di visualizzazione delle mail */
 
@@ -38,7 +37,6 @@ public class EmailController {
 
     @FXML
     public Label bodyLabel;
-
 
     public void set_email(Mail example){
         /** Funzione usata per selezionare l'email da visualizzare e riempie i dati
@@ -83,7 +81,7 @@ public class EmailController {
     /**
      * Gestisce l'evento di risposta a tutti i destinatari dell'email
      * @param actionEvent è l'evento di risposta a tutti i destinatari dell'email
-      */
+     */
 
     public void handleReplyAll(ActionEvent actionEvent) {
         /**

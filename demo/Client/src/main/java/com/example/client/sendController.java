@@ -12,9 +12,9 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-//import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.io.*;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
@@ -42,12 +42,14 @@ public class sendController {
      * Imposta l'oggetto dell'email per il metodo di risposta.
      * @param subject L'oggetto dell'email.
      */
-
-    /** Imposta il contenuto dell'email per il metodo di risposta. */
-
     public void set_subject(String subject) {
         subjectField.setText("RE:" + subject);
     }
+
+    /**
+     * Imposta il contenuto dell'email per il metodo di risposta.
+     * @param content Il contenuto dell'email.
+     */
     public void set_content(String content) {
         bodyArea.setText("RE:" + content);
     }
@@ -56,7 +58,6 @@ public class sendController {
      * Imposta i destinatari dell'email.
      * @param receivers I destinatari dell'email.
      */
-
     public void set_receivers(String[] receivers) {
         for (int i = 0; i < receivers.length; i++) {
             toField.appendText(receivers[i]);
@@ -68,20 +69,18 @@ public class sendController {
     }
 
     /** Aggiunge i destinatari alla lista dei destinatari. */
-
     @FXML
     protected void addReceiver() {
         String[] destinatari = toField.getText().trim().split(",");
 
-        for (String destinatario: destinatari){
+        for (String destinatario : destinatari) {
             /** Verifica se il campo del destinatario non è vuoto e se l'indirizzo è valido */
             if (!destinatario.isEmpty() && Structures.isValidEmail(destinatario)) {
-
                 try (Socket socket = new Socket("localhost", Structures.PORT);
                      ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
                      ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
 
-                    Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario, backup.getUserEmailBackup());
+                    Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario, backup.getUserEmailBackup(), backup.getLastMailId());
                     output.writeObject(request);
                     output.flush();
 
@@ -91,12 +90,10 @@ public class sendController {
                         receiversList.appendText(destinatario + "\n");
                         // Cancella il campo per il prossimo inserimento
                         toField.clear();
-                    } else if(response.getRequestCode() == Structures.DEST_ERROR) {
-                        errorLabel.setText("Errore: Indirizzo email: " + destinatario +" non trovato.");
+                    } else if (response.getRequestCode() == Structures.DEST_ERROR) {
+                        errorLabel.setText("Errore: Indirizzo email: " + destinatario + " non trovato.");
                         successLabel.setText(""); // Cancella eventuali successi precedenti
-
-                    }
-                    else {
+                    } else {
                         errorLabel.setText("Errore sconosciuto.");
                         successLabel.setText(""); // Cancella eventuali successi precedenti
                         break;
@@ -106,28 +103,25 @@ public class sendController {
                     errorLabel.setText("Error connecting to server.");
                     break;
                 }
-
             } else {
                 errorLabel.setText("Errore: Indirizzo email non valido.");
                 successLabel.setText(""); // Cancella eventuali successi precedenti
                 break;
             }
         }
-
     }
 
     /** invio dell'email */
-
     @FXML
     protected void sendEmail() {
         String oggetto = subjectField.getText().trim();
-        //Elimino eventuali caratteri che romperebbero la formattazione del file
+        // Elimino eventuali caratteri che romperebbero la formattazione del file
         String corpo = bodyArea.getText().trim().replace("\n", "").replace("\r", "");
 
         String[] destinatari = receiversList.getText().trim().split("\n"); // Legge tutti i destinatari
         System.out.println(Arrays.toString(destinatari));
         LocalDateTime date = LocalDateTime.now();
-        Mail new_mail = new Mail(backup.getUserEmailBackup(), oggetto, corpo, destinatari, date);
+        Mail new_mail = new Mail(backup.getUserEmailBackup(), oggetto, corpo, destinatari, date, backup.getLastMailId() + 1);
 
         /** Controllo della correttezza degli input */
         if (destinatari.length == 0 || oggetto.isEmpty() || corpo.isEmpty()) {
@@ -136,13 +130,12 @@ public class sendController {
             return;
         }
 
-        /** Scrive la mail sul socket */ //MODIFICARE
-        try  {
-            Socket clientSocket = new Socket("localhost", Structures.PORT);
-            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+        /** Scrive la mail sul socket */
+        try (Socket clientSocket = new Socket("localhost", Structures.PORT);
+             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream())) {
 
-            //Costruisco la richiesta
-            Request<Mail> new_mail_to_send = new Request<>(Structures.SEND_MAIL,new_mail, backup.getUserEmailBackup());
+            // Costruisco la richiesta
+            Request<Mail> new_mail_to_send = new Request<>(Structures.SEND_MAIL, new_mail, backup.getUserEmailBackup(), backup.getLastMailId());
             output.writeObject(new_mail_to_send);
 
             // Se l'email è inviata con successo

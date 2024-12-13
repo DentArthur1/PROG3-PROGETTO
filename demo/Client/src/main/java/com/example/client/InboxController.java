@@ -10,19 +10,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.application.Platform;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.time.LocalDateTime;
 
 public class InboxController {
@@ -110,7 +103,7 @@ public class InboxController {
             /** La sessione non è ancora iniziata(è stata creata la classe in Login) */
             backup = sessionBackup;
             emailList = get_new_emails();
-            sessionBackup.startSession(emailList);
+            sessionBackup.startSession(emailList, getLastMailId(emailList));
             set_user_email(backup.getUserEmailBackup());
         } else {
             /** Una sessione è già attiva, procedo a ripristinarla */
@@ -148,6 +141,7 @@ public class InboxController {
                             }
                         }
                         backup.setEmailBackup(FXCollections.observableArrayList(emailList)); // Aggiorna il backup
+                        backup.setLastMailId(getLastMailId(emailList)); // Aggiorna l'ultimo ID della mail
                     }
                 });
             }
@@ -170,7 +164,7 @@ public class InboxController {
     /**
      * Ferma la funzione di ping del server
      * (CAMBIANDO CONTROLLER E TORNANDO ALLA INBOX SI PERDE IL RIFERIMENTO AL TIMER PRECEDENTE
-     * RENDENDO INUTILE OGNI OPERAZIONE DI CANCELLAZIONE DEL TIMER PRECEDENTE)
+     * RENDENDO INUTILE OGNI OPERAZIONE DI CANCELLAZIONE DEL TIMER PRECENDENTE)
      */
     private void stop_ping_timer(){
         if (pingTimer != null) {
@@ -201,7 +195,7 @@ public class InboxController {
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
 
-            Request<String> ping_request = new Request<>(Structures.PING, "ping", backup.getUserEmailBackup());
+            Request<String> ping_request = new Request<>(Structures.PING, "ping", backup.getUserEmailBackup(), backup.getLastMailId());
             output.writeObject(ping_request);
             Request<?> pong_request = (Request<?>) input.readObject();
 
@@ -226,7 +220,7 @@ public class InboxController {
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
 
-            Request<String> mail_update_request = new Request<>(Structures.UPDATE_MAILS, backup.getUserEmailBackup(), backup.getUserEmailBackup());
+            Request<String> mail_update_request = new Request<>(Structures.UPDATE_MAILS, backup.getUserEmailBackup(), backup.getUserEmailBackup(), backup.getLastMailId());
             output.writeObject(mail_update_request);
 
             Request<?> new_mails = (Request<?>) input.readObject();
@@ -274,7 +268,7 @@ public class InboxController {
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-            Request<String> logout_request = new Request<>(Structures.LOGOUT, "", backup.getUserEmailBackup());
+            Request<String> logout_request = new Request<>(Structures.LOGOUT, "", backup.getUserEmailBackup(), backup.getLastMailId());
             output.writeObject(logout_request);
 
         } catch (Exception e){
@@ -295,34 +289,30 @@ public class InboxController {
     /** Rimuove le email selezionate */
     @FXML
     protected void handleDelete() {
-        /**
-         * Ottengo le mail selezionate*/
+        // Ottengo le mail selezionate
         ArrayList<Mail> selectedEmails = new ArrayList<>();
         for (Mail email : emailList) {
             if (email.isSelected()) {
                 selectedEmails.add(email);
             }
         }
-        /** ELimino le mail localmente, dalla lista dela inbox */
 
+        // Elimino le mail localmente, dalla lista della inbox
         emailList.removeAll(selectedEmails);
 
-        /** Invio la richiesta di eliminazione al server*/
-
-        try {
-            Socket clientSocket = new Socket("localhost", Structures.PORT);
-            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-            Request<ArrayList<Mail>> mails_to_delete = new Request<>(Structures.DELETE, selectedEmails, backup.getUserEmailBackup());
-            output.writeObject(mails_to_delete);
-
-        } catch (Exception e){
+        // Invio la richiesta di eliminazione al server
+        try (Socket clientSocket = new Socket("localhost", Structures.PORT);
+             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream())) {
+            Request<ArrayList<Mail>> mailsToDelete = new Request<>(Structures.DELETE, selectedEmails, backup.getUserEmailBackup(), backup.getLastMailId());
+            output.writeObject(mailsToDelete);
+        } catch (Exception e) {
             System.out.println("Failed deleting mails.");
         }
 
-        /** Aggiorna il backup per riflettere la nuova lista di email */
+        // Aggiorna il backup per riflettere la nuova lista di email
         backup.setEmailBackup(FXCollections.observableArrayList(emailList));
 
-        /** Aggiorna la vista della lista delle email */
+        // Aggiorna la vista della lista delle email
         emailTable.refresh(); // Aggiorna la vista della TableView
     }
 
@@ -338,4 +328,12 @@ public class InboxController {
         set_user_email(backup.getUserEmailBackup());
     }
 
+    /**
+     * Ottiene l'ultimo ID della mail dalla lista delle email.
+     * @param emailList lista delle email.
+     * @return l'ultimo ID della mail.
+     */
+    private int getLastMailId(ObservableList<Mail> emailList) {
+        return emailList.stream().mapToInt(Mail::getId).max().orElse(0);
+    }
 }

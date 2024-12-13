@@ -6,8 +6,9 @@ import javafx.beans.property.SimpleBooleanProperty;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Objects;
 
-public class Mail implements Serializable{
+public class Mail implements Serializable {
     /**
      * Classe dati unificata per le Mail e i Messaggi.
      * Contiene i metodi per la conversione in stringa e viceversa, gestione della selezione,
@@ -19,6 +20,7 @@ public class Mail implements Serializable{
     private String[] receivers;
     private LocalDateTime date;
     private transient BooleanProperty selected;
+    private int id; // Aggiunto campo ID per tenere traccia dell'ultimo ID della mail
 
     /**
      * Costruttore per la creazione di una Mail
@@ -27,14 +29,16 @@ public class Mail implements Serializable{
      * @param content : contenuto della mail
      * @param receivers : array dei destinatari
      * @param date : data di invio della mail
+     * @param id : ID della mail
      */
-    public Mail(String sender, String title, String content, String[] receivers, LocalDateTime date) {
+    public Mail(String sender, String title, String content, String[] receivers, LocalDateTime date, int id) {
         this.sender = sender;
         this.title = title;
         this.content = content;
         this.receivers = receivers;
         this.date = date;
         this.selected = new SimpleBooleanProperty(false);
+        this.id = id;
     }
 
     /**
@@ -46,7 +50,7 @@ public class Mail implements Serializable{
         String[] parts = line.split("§");
         System.out.println(Arrays.toString(parts));
         String[] receivs = parts[3].split(",");
-        return new Mail(parts[0], parts[1], parts[2], receivs, LocalDateTime.parse(parts[4]));
+        return new Mail(parts[0], parts[1], parts[2], receivs, LocalDateTime.parse(parts[4]), Integer.parseInt(parts[5]));
     }
 
     // Getter e setter per tutti i campi
@@ -103,10 +107,37 @@ public class Mail implements Serializable{
         this.selected.set(selected);
     }
 
-    public void recover_from_serialization(){
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void recover_from_serialization() {
         this.selected = new SimpleBooleanProperty(false);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Mail mail = (Mail) o;
+        return id == mail.id &&
+                Objects.equals(sender, mail.sender) &&
+                Objects.equals(title, mail.title) &&
+                Objects.equals(content, mail.content) &&
+                Arrays.equals(receivers, mail.receivers) &&
+                Objects.equals(date, mail.date);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(sender, title, content, date, id);
+        result = 31 * result + Arrays.hashCode(receivers);
+        return result;
+    }
 
     /**
      * Metodo `toString`.
@@ -115,7 +146,6 @@ public class Mail implements Serializable{
      */
     @Override
     public String toString() {
-        return sender + "§" + title + "§" + content + "§" + String.join(",", receivers) + "§" + date;
+        return sender + "§" + title + "§" + content + "§" + String.join(",", receivers) + "§" + date + "§" + id;
     }
-
 }

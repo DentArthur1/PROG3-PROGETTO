@@ -75,6 +75,4 @@ public class Structures {
         /**Metodo per la verifica della sintassi delle mail*/
         return Pattern.matches(EMAIL_REGEX, email);
     }
-
-
 }
