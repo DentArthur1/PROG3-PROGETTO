@@ -7,3 +7,7 @@ ciao@sigmamail.com§PERFAVORE§fgdghsfghsghfjs§raffaele@sigmamail.com§2024-12-
 a@sigmamail.com§FDFDSFD§dsfgadfg§a@sigmamail.com§2024-12-13T19:36:09.721314883§10§false
 ciao@sigmamail.com§PROVA§vai§a@sigmamail.com§2024-12-13T20:14:00.588384646§1§false
 ciao@sigmamail.com§BELLO§afd§a@sigmamail.com§2024-12-13T20:16:37.304979023§1§false
+ciao@sigmamail.com§OH§OHHH§a@sigmamail.com,raffaele@sigmamail.com§2024-12-13T20:21:14.256104866§1§false
+raffaele@sigmamail.com§MANNAGGIA§dssdfasdfads§ciao@sigmamail.com§2024-12-13T20:21:42.968526653§9§true
+raffaele@sigmamail.com§PROVOLA§asdfdfsgafd§ciao@sigmamail.com§2024-12-13T20:22:15.945988362§9§false
+ciao@sigmamail.com§RE:MANNAGGIA§RE:dssdfasdfads§a@sigmamail.com,raffaele@sigmamail.com§2024-12-13T20:25:03.754677023§10§false
