@@ -6,6 +6,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 
+/* Classe controllore per gestire l'interfaccia del server */
+
 public class ServerController {
 
     @FXML
@@ -17,10 +19,15 @@ public class ServerController {
 
     private ServerManager serverManager; // Gestione separata del server
 
+
+    /** Inizializza lo stato iniziale dei componenti dell'interfaccia */
+
     public void initialize() {
         stopButton.setDisable(true);
         stopButton.setVisible(false);
     }
+
+    /** Avvia il server */
 
     @FXML
     public void startServer() {
@@ -36,6 +43,8 @@ public class ServerController {
         stopButton.setVisible(true);
     }
 
+    /** Ferma il server */
+
     @FXML
     public void stopServer() {
         if (serverManager != null) {
@@ -48,6 +57,11 @@ public class ServerController {
             stopButton.setDisable(true);
         }
     }
+
+    /**
+     * Aggiunge un messaggio di log alla ListView.
+     * @param message Il messaggio di log da aggiungere.
+     */
 
     public void addLog(String message) {
         Platform.runLater(() -> logListView.getItems().add(message));

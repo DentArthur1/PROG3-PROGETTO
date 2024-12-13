@@ -13,9 +13,20 @@ public class MessageService {
      */
     private ServerManager servermanager;
 
+    /**
+     * Costruttore della classe
+     * @param servermanager oggetto di tipo ServerManager
+     */
+
     public MessageService(ServerManager servermanager) {
         this.servermanager = servermanager;
     }
+
+    /**
+     * Caricare i messaggi dal file
+     * @return email è l'email dell'utente che ha inviato il messaggio
+     * @return la lista di messaggi caricati
+     */
 
     public ArrayList<Mail> loadMessages(String email) {
         System.out.println("Loading Messages from " + servermanager.getClientFilePointer(email));
@@ -26,11 +37,11 @@ public class MessageService {
             int pointer = servermanager.getClientFilePointer(email); // Valore del file_pointer
 
             while ((line = reader.readLine()) != null) {
-                if (lineNumber < pointer) { // Salta solo le righe con indice < pointer
+                if (lineNumber < pointer) { /** Salta solo le righe con indice < pointer */
                     lineNumber++;
                     continue;
                 }
-                messages.add(Mail.fromLine(line)); // Aggiungi il messaggio dalla linea
+                messages.add(Mail.fromLine(line)); /** Aggiungi il messaggio dalla linea */
                 lineNumber++;
             }
         } catch (IOException e) {
@@ -46,8 +57,8 @@ public class MessageService {
      * Metodo per ottenere le mail ricevute da un determinato utente, da mettere nella inbox dopo il login
      * @param receiver email dell'utente di cui si vuole caricare la inbox
      * @return lista di email ricevute dall'utente
-     *
      */
+
     public ArrayList<Mail> getMessagesByReceiver(String receiver, String email) {
         ArrayList<Mail> allMessages = loadMessages(email);
         ArrayList<Mail> filteredMessages = new ArrayList<>();

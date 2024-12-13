@@ -9,14 +9,21 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+/** Classe per gestire il server e le connessioni dei client */
+
 public class ServerManager implements Runnable {
     private volatile boolean running = false;
     private ServerSocket serverSocket;
     private final ServerController serverController;
     private String new_user_email;
 
-    // Mappa per tenere traccia dei file pointers per ogni client
+    /** Mappa per tenere traccia dei file pointers per ogni client */
     private final Map<String, Integer> clientFilePointers = new HashMap<>();
+
+    /**
+     * Costruttore della classe ServerManager.
+     * @param serverController Il controller del server.
+     */
 
     public ServerManager(ServerController serverController) {
         this.serverController = serverController;
@@ -47,6 +54,8 @@ public class ServerManager implements Runnable {
         }
         serverController.addLog("Server fermato.");
     }
+
+    /** Metodo run del thread del server */
 
     @Override
     public void run() {
@@ -102,7 +111,7 @@ public class ServerManager implements Runnable {
         }
     }
 
-
+/** Metodo per pulire le risorse del server */
 
     private void cleanup() {
         try {
@@ -114,14 +123,34 @@ public class ServerManager implements Runnable {
         }
     }
 
+    /**
+     * Restituisce il file pointer del client.
+     * @param email L'email del client.
+     * @return Il file pointer del client.
+     */
+
     public synchronized int getClientFilePointer(String email) {
         return clientFilePointers.get(email);
     }
+
+    /**
+     * Aggiorna il file pointer del client.
+     * @param email L'email del client.
+     * @param filePointer Il nuovo file pointer.
+     */
 
     public synchronized void updateClientFilePointer(String email, int filePointer) {
         clientFilePointers.put(email, filePointer);
         serverController.addLog("Aggiorno il file pointer di: " + email + " a: " + filePointer);
     }
+
+    /**
+     * Gestisce la verifica del login.
+     * @param request La richiesta di login.
+     * @param output Lo stream di output per il client.
+     * @return true se l'utente esiste, false altrimenti.
+     * @throws IOException Se si verifica un errore durante la verifica del login.
+     */
 
     private boolean handleLoginCheck(Request<String> request, ObjectOutputStream output) throws IOException {
         String userEmail = request.getPayload();

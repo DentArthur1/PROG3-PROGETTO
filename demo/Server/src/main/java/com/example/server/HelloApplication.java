@@ -8,6 +8,13 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/** Main class for server */
+
+/**
+ * Metodo di avvio dell'applicazione.
+ * @throws IOException Se si verifica un errore durante il caricamento della scena.
+ */
+
 public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
