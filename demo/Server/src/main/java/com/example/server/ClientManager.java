@@ -1,3 +1,4 @@
+// ClientManager.java
 package com.example.server;
 
 import com.example.shared.Mail;
@@ -6,10 +7,6 @@ import com.example.shared.Request;
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
-
-/**
- * Classe per gestire le connessioni dei client e le loro richieste in arrivo.
- */
 
 public class ClientManager {
 
@@ -21,15 +18,6 @@ public class ClientManager {
     private final ServerManager servermanager;
     private String email; // Email del client
 
-    /**
-     * Costruttore della classe ClientManager.
-     * @param serverController Il controller del server.
-     * @param serverManager Il manager del server.
-     * @param output Lo stream di output per il client.
-     * @param input Lo stream di input per il client.
-     * @param clientSocket Il socket del client.
-     */
-
     public ClientManager(ServerController serverController, ServerManager serverManager, ObjectOutputStream output, ObjectInputStream input, Socket clientSocket) {
         this.messageService = new MessageService(serverManager);
         this.output = output;
@@ -39,34 +27,19 @@ public class ClientManager {
         this.clientSocket = clientSocket;
     }
 
-    /** Restituisce l'email del client
-     @return email del client
-     */
     public String getEmail() {
         return email;
     }
-
-    /** Imposta l'email del client
-     @param email email del client
-     */
 
     public void setEmail(String email) {
         this.email = email;
     }
 
-    /** Imposta il socket del client
-     @param socket socket del client
-     */
-
     public void set_socket(Socket socket) {
         this.clientSocket = socket;
     }
 
-    /** Gestisce le richieste in arrivo dal client.
-     * @param request La richiesta del client.
-     */
-
-    public void handleClient(Request<?> request) {
+    public synchronized void handleClient(Request<?> request) {
         try {
             // Switch-case per gestire le richieste
             setEmail(request.getAuthToken());
@@ -91,175 +64,105 @@ public class ClientManager {
         }
     }
 
-    /** Gestisce le richieste di logout del client */
+    private synchronized void handleUpdateMails(Request<String> request) {
+        try {
+            ArrayList<Mail> newMails = messageService.getMessagesByReceiver(request.getPayload(), email);
+            Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, newMails, email, request.getLastMailId());
+            output.writeObject(response);
+            serverController.addLog("Aggiornamento delle mail inviato a: " + email);
+        } catch (IOException e) {
+            serverController.addLog("Errore durante l'aggiornamento delle mail: " + e.getMessage());
+        }
+    }
 
-    private void handleLogout() {
+    private synchronized void handlePing() {
+        try {
+            Request<String> response = new Request<>(Structures.PING, "pong", email, 0);
+            output.writeObject(response);
+            serverController.addLog("Ping ricevuto da: " + email);
+        } catch (IOException e) {
+            serverController.addLog("Errore durante il ping: " + e.getMessage());
+        }
+    }
+
+    private synchronized void handleSendMail(Request<Mail> request) {
+        try {
+            Mail newMail = request.getPayload();
+            serverController.addLog("Nuova mail ricevuta da: " + newMail.getSender());
+            // Scrivi la mail nel file
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH, true))) {
+                writer.write(newMail.toString());
+                writer.newLine();
+            }
+            serverController.addLog("Mail salvata con successo.");
+        } catch (IOException e) {
+            serverController.addLog("Errore durante il salvataggio della mail: " + e.getMessage());
+        }
+    }
+
+    private synchronized void handleDestCheck(Request<String> request) {
+        try {
+            String destEmail = request.getPayload();
+            boolean destExists = Structures.checkUserExists(destEmail);
+            int responseCode = destExists ? Structures.DEST_OK : Structures.DEST_ERROR;
+            Request<String> response = new Request<>(responseCode, destEmail, email, request.getLastMailId());
+            output.writeObject(response);
+            serverController.addLog("Verifica destinatario per: " + destEmail + " esito: " + (destExists ? "OK" : "ERROR"));
+        } catch (IOException e) {
+            serverController.addLog("Errore durante la verifica del destinatario: " + e.getMessage());
+        }
+    }
+
+    private synchronized void handleLogout() {
         // Aggiorna il file_pointer del client che ha fatto logout
         servermanager.updateClientFilePointer(this.getEmail(), 0);
         serverController.addLog("Logout request received, resetting file pointer.");
+        try {
+            if (output != null) output.close();
+            clientSocket.close();
+        } catch (IOException e) {
+            serverController.addLog("Errore durante la chiusura della connessione: " + e.getMessage());
+        }
     }
 
-    /**
-     * Gestisce la richiesta di eliminazione delle email.
-     * @param request La richiesta di eliminazione delle email.
-     * @throws IOException Se si verifica un errore durante l'eliminazione delle email.
-     */
+    private synchronized void handleDelete(Request<ArrayList<Mail>> request) {
+        try {
+            ArrayList<Mail> mailsToDelete = request.getPayload();
+            ArrayList<Mail> allMails = messageService.loadAllMailfromUser();
 
-    private void handleDelete(Request<ArrayList<Mail>> request) throws IOException {
-        /** Converto in un array di stringhe */
-        String[] mailStrings = new String[request.getPayload().size()];
-        for (int i = 0; i < request.getPayload().size(); i++) {
-            mailStrings[i] = request.getPayload().get(i).toString(); // Chiama toString() su ogni Mail
-        }
-
-        /** Ottieni l'elenco di email da eliminare come un Set per confronti più rapidi */
-        Set<String> emailsToDelete = new HashSet<>(Arrays.asList(mailStrings));
-
-        /** File da modificare */
-        File file = new File(Structures.FILE_PATH);
-
-        if (!file.exists()) {
-            serverController.addLog("Il file non esiste: " + Structures.FILE_PATH);
-            return;
-        }
-        /** Legge tutto il contenuto del file in memoria e filtra le righe da eliminare */
-        List<String> filteredLines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String trimmedLine = line.trim();
-                if (!emailsToDelete.contains(trimmedLine)) {
-                    filteredLines.add(line); /** Aggiunge solo le righe che non devono essere eliminate */
+            for (Mail mail : mailsToDelete) {
+                for (Mail existingMail : allMails) {
+                    if (existingMail.equals(mail)) {
+                        List<String> dest = new ArrayList<>(Arrays.asList(existingMail.getReceivers()));
+                        if (dest.size() > 1) {
+                            dest.remove(email);
+                            existingMail.setReceivers(dest.toArray(new String[0]));
+                            existingMail.setModified(true); // Imposta il campo modified a true
+                        } else {
+                            allMails.remove(existingMail);
+                        }
+                        break;
+                    }
                 }
             }
-        }
-        /** Scrive nuovamente il contenuto filtrato nel file, sovrascrivendo il vecchio contenuto */
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (String line : filteredLines) {
-                writer.write(line);
-                writer.newLine(); /** Scrive ogni riga con una nuova linea */
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH))) {
+                for (Mail mail : allMails) {
+                    writer.write(mail.toString());
+                    writer.newLine();
+                }
             }
-        }
-
-        /** Aggiorna il file_pointer del client che ha inviato l'email */
-        int newPointer = servermanager.getClientFilePointer(this.getEmail()) - mailStrings.length;
-        servermanager.updateClientFilePointer(this.getEmail(), newPointer);
-
-        serverController.addLog("Email deletion success:\n" + emailsToDelete + "\n----> DELETED");
-    }
-
-    /**
-     * Gestisce la richiesta di aggiornamento delle email.
-     * @param request_with_mail La richiesta di aggiornamento delle email.
-     * @throws IOException Se si verifica un errore durante l'aggiornamento delle email.
-     */
-
-    private void handleUpdateMails(Request<String> request_with_mail) throws IOException {
-        ArrayList<Mail> messages = messageService.getMessagesByReceiver(request_with_mail.getPayload(), this.getEmail());
-        Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, messages, "SERVER");
-        sendResponse(response);
-        serverController.addLog("Email inviate con successo!");
-    }
-
-    /**
-     * Gestisce la richiesta di ping.
-     * @throws IOException Se si verifica un errore durante la gestione del ping.
-     */
-
-    private void handlePing() throws IOException {
-        Request<String> response = new Request<>(Structures.PING, "pong", "SERVER");
-        sendResponse(response);
-        serverController.addLog("Ping gestito correttamente!");
-    }
-
-    /**
-     * Gestisce la richiesta di invio email.
-     * @param request La richiesta di invio email.
-     */
-
-    private void handleSendMail(Request<Mail> request) {
-        try {
-            Mail mail = request.getPayload();
-            saveMessage(mail);
-            serverController.addLog("Messaggio salvato: " + mail);
+            serverController.addLog("Mail cancellata per: " + email);
         } catch (IOException e) {
-            serverController.addLog("Errore durante il salvataggio del messaggio: " + e.getMessage());
+            serverController.addLog("Errore durante la cancellazione della mail: " + e.getMessage());
         }
     }
 
-    /**
-     * Legge i dati dal client.
-     * @return La richiesta del client.
-     * @throws IOException Se si verifica un errore durante la lettura dei dati.
-     * @throws ClassNotFoundException Se la classe della richiesta non viene trovata.
-     */
-
-    private Request<?> readDataFromClient() throws IOException, ClassNotFoundException {
-        return (Request<?>) input.readObject();
-    }
-
-    /**
-     * Invia una risposta al client.
-     * @param response La risposta da inviare.
-     * @throws IOException Se si verifica un errore durante l'invio della risposta.
-     */
-
-    private void sendResponse(Request<?> response) throws IOException {
-        output.writeObject(response);
-        output.flush();
-    }
-
-    /**
-     * Salva un messaggio nel file.
-     * @param message Il messaggio da salvare.
-     * @throws IOException Se si verifica un errore durante il salvataggio del messaggio.
-     */
-
-    private void saveMessage(Mail message) throws IOException {
-        File file = new File(Structures.FILE_PATH);
-
-        /** Crea il file se non esiste */
-        if (!file.exists() && !file.createNewFile()) {
-            throw new IOException("Impossibile creare il file: " + Structures.FILE_PATH);
-        }
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH, true))) {
-            if(file.length() != 0) {
-                writer.write("\n");
-            }
-            writer.write(message.toString());
-        }
-    }
-
-    /**
-     * Gestisce la richiesta di verifica del destinatario.
-     * @param request La richiesta di verifica del destinatario.
-     * @throws IOException Se si verifica un errore durante la verifica del destinatario.
-     */
-
-    private void handleDestCheck(Request<String> request) throws IOException {
-        String userEmail = request.getPayload();
-        boolean userExists = Structures.checkUserExists(userEmail);
-        int responseCode;
-        if (userExists) {
-            serverController.addLog("User " + userEmail + " found. Sending DEST_OK.");
-            responseCode = Structures.DEST_OK;
-        } else {
-            serverController.addLog("User " + userEmail + " not found. Sending DEST_ERROR.");
-            responseCode = Structures.DEST_ERROR;
-        }
-
-        Request<String> response = new Request<>(responseCode, userEmail, "SERVER");
-        sendResponse(response);
-    }
-
-    /** Chiude la connessione con il client */
-
-    private void closeConnection() {
+    private synchronized void closeConnection() {
         try {
             if (input != null) input.close();
             if (output != null) output.close();
-            clientSocket.close();
+            if (clientSocket != null && !clientSocket.isClosed()) clientSocket.close();
         } catch (IOException e) {
             serverController.addLog("Errore durante la chiusura della connessione: " + e.getMessage());
         }

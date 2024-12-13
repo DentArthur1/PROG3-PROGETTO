@@ -1,1 +1,9 @@
-daniele@sigmamail.com§prova§Messaggio di prova§daniele@sigmamail.com,raffaele@sigmamail.com,samuele@sigmamail.com§2024-12-13T09:11:01.487309400
+a@sigmamail.com§D§DDDD§raffaele@sigmamail.com§2024-12-13T19:01:59.260435776§3§false
+raffaele@sigmamail.com§dsaffdaghagdh§gtdahgdfhgfh§a@sigmamail.com§2024-12-13T19:06:38.836876254§5§false
+a@sigmamail.com§A§A§a@sigmamail.com,raffaele@sigmamail.com§2024-12-13T19:14:41.917113116§6§false
+a@sigmamail.com§RE:SAFADSFD§RE:dfsdafasd§raffaele@sigmamail.com,raffaele@sigmamail.com§2024-12-13T19:18:53.911838919§8§false
+raffaele@sigmamail.com§RE:RE:SAFADSFD§RE:RE:dfsdafasd§a@sigmamail.com§2024-12-13T19:24:14.518275367§9§true
+ciao@sigmamail.com§PERFAVORE§fgdghsfghsghfjs§raffaele@sigmamail.com§2024-12-13T19:34:27.661592994§1§false
+a@sigmamail.com§FDFDSFD§dsfgadfg§a@sigmamail.com§2024-12-13T19:36:09.721314883§10§false
+ciao@sigmamail.com§PROVA§vai§a@sigmamail.com§2024-12-13T20:14:00.588384646§1§false
+ciao@sigmamail.com§BELLO§afd§a@sigmamail.com§2024-12-13T20:16:37.304979023§1§false
