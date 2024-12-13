@@ -6,6 +6,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import java.io.IOException;
 
+/** Main class */
+
+/**
+ * Medo di avvio dell'applicazione
+ * @throws IOException viene lanciata se si verifica un errore durante il caricamento della scena
+ */
+
+
 public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {

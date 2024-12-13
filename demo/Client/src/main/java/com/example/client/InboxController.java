@@ -44,10 +44,16 @@ public class InboxController {
     private Timer pingTimer;
     private Timer emailUpdateTimer;
 
+    /**
+     * @param email è l'email dell'utente
+     */
+
     @FXML
     public void set_user_email(String email) {
         userMail.setText("Benvenuto," + email);
     }
+
+    /** inizializzazione controller */
 
     public void initialize() {
         /** Colonna con checkbox per selezionare le email */
@@ -58,17 +64,17 @@ public class InboxController {
         /** Aggiungi la colonna "Seleziona" come prima colonna */
         emailTable.getColumns().add(0, selectColumn);
 
-        // Configura le altre colonne
+        /** Configura le altre colonne */
         receiversColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSender()));
         subjectColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
 
-        // Inizializza il ping task
+        /** Inizializza il ping task */
         startPingTask();
         startEmailUpdateTask();
     }
 
-    /**
-     * Metodo per creare una cella con checkbox
+    /** Metodo per creare una cella con checkbox
+     * @return della cella con checkbox
      */
     private TableCell<Mail, Boolean> createCheckboxCell() {
         return new TableCell<>() {
@@ -93,10 +99,15 @@ public class InboxController {
         };
     }
 
+    /**
+     * Metodo per accedere alla casella di posta (inbox)
+     * @param sessionBackup è il backup della sessione
+     */
+
     public void access_inbox(SessionBackup sessionBackup) {
         /** Accedo a una sessione di Inbox esistente o ne creo una nuova */
         if (!sessionBackup.isSessionStarted()) {
-            //La sessione non è ancora iniziata(è stata creata la classe in Login)
+            /** La sessione non è ancora iniziata(è stata creata la classe in Login) */
             backup = sessionBackup;
             emailList = get_new_emails();
             sessionBackup.startSession(emailList);
@@ -105,7 +116,7 @@ public class InboxController {
             /** Una sessione è già attiva, procedo a ripristinarla */
             restore_inbox(sessionBackup);
         }
-        //Rendo le email visibili a schermo
+        /** Rendo le email visibili a schermo */
         receiversColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSender()));
         subjectColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
         emailTable.setItems(emailList);
@@ -124,7 +135,7 @@ public class InboxController {
 
     /** Avvia un task periodico per aggiornare le email */
     private void startEmailUpdateTask() {
-        emailUpdateTimer = new Timer(true); // Timer come thread daemon
+        emailUpdateTimer = new Timer(true); /** Timer come thread daemon */
         emailUpdateTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -132,20 +143,22 @@ public class InboxController {
                     ObservableList<Mail> updatedEmails = get_new_emails();
                     if (updatedEmails != null) {
                         for (Mail email : updatedEmails) {
-                            if (!emailList.contains(email)) { // Verifica se l'email è già presente
-                                emailList.add(email);        // Aggiunge solo le nuove email
+                            if (!emailList.contains(email)) { /** Verifica se l'email è già presente */
+                                emailList.add(email);        /** Aggiunge solo le nuove email */
                             }
                         }
                         backup.setEmailBackup(FXCollections.observableArrayList(emailList)); // Aggiorna il backup
                     }
                 });
             }
-        }, 10000, 10000); // Aggiorna ogni 10 secondi
+        }, 10000, 10000); /** Aggiorna ogni 10 secondi */
     }
 
     /**
-     * Ferma l'aggiornamento delle mail quando cambio scena o faccio logout (CAMBIANDO CONTROLLER E TORNANDO ALLA INBOX SI PERDE IL RIFERIMENTO AL TIMER PRECEDENTE
-     * RENDENDO INUTILE OGNI OPERAZIONE DI CANCELLAZIONE DEL TIMER PRECENDENTE)*/
+     * Ferma l'aggiornamento delle mail quando cambio scena o faccio logout
+     * (CAMBIANDO CONTROLLER E TORNANDO ALLA INBOX SI PERDE IL RIFERIMENTO AL TIMER PRECEDENTE
+     * RENDENDO INUTILE OGNI OPERAZIONE DI CANCELLAZIONE DEL TIMER PRECENDENTE)
+     */
     private void stop_email_update(){
         // Fermiamo il timer di aggiornamento delle email
         if (emailUpdateTimer != null) {
@@ -155,8 +168,10 @@ public class InboxController {
     }
 
     /**
-     * Ferma la funzione di ping del server(CAMBIANDO CONTROLLER E TORNANDO ALLA INBOX SI PERDE IL RIFERIMENTO AL TIMER PRECEDENTE
-     * RENDENDO INUTILE OGNI OPERAZIONE DI CANCELLAZIONE DEL TIMER PRECEDENTE)*/
+     * Ferma la funzione di ping del server
+     * (CAMBIANDO CONTROLLER E TORNANDO ALLA INBOX SI PERDE IL RIFERIMENTO AL TIMER PRECEDENTE
+     * RENDENDO INUTILE OGNI OPERAZIONE DI CANCELLAZIONE DEL TIMER PRECEDENTE)
+     */
     private void stop_ping_timer(){
         if (pingTimer != null) {
             pingTimer.cancel();
@@ -176,6 +191,10 @@ public class InboxController {
         });
     }
 
+    /**
+     *  Funzione per verificare se il server è attivo
+     *  @return true se il server è attivo, false altrimenti
+     */
     private boolean isServerActive() {
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
@@ -192,6 +211,11 @@ public class InboxController {
             return false;
         }
     }
+
+    /**
+     * Ottiene le nuove email dal server
+     * @return la lista delle nuove email
+     */
 
     private ObservableList<Mail> get_new_emails() {
         /** Funzione per ottenere le nuove email dal server da mostrare a schermo */
@@ -223,6 +247,8 @@ public class InboxController {
         return parsed_mails;
     }
 
+    /** Viene gestito il click su una mail rendendo visibili i dettagli */
+
     @FXML
     protected void handleEmailClick() {
         stop_email_update();
@@ -236,6 +262,8 @@ public class InboxController {
             email_controller.backup = backup; /** Passa il backup */
         }
     }
+
+    /** Viene gestito il logout */
 
     @FXML
     protected void handleLogout() {
@@ -275,10 +303,12 @@ public class InboxController {
                 selectedEmails.add(email);
             }
         }
-        //ELimino le mail localmente, dalla lista dela inbox
+        /** ELimino le mail localmente, dalla lista dela inbox */
+
         emailList.removeAll(selectedEmails);
-        /**
-         * Invio la richiesta di eliminazione al server*/
+
+        /** Invio la richiesta di eliminazione al server*/
+
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
@@ -295,6 +325,11 @@ public class InboxController {
         /** Aggiorna la vista della lista delle email */
         emailTable.refresh(); // Aggiorna la vista della TableView
     }
+
+    /**
+     * Ripristina la inbox.
+     * @param sessionBackup backup della sessione.
+     */
 
     private void restore_inbox(SessionBackup sessionBackup) {
         /** Ripristino la visione delle mail secondo le specifiche del backup */

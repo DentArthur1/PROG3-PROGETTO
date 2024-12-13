@@ -14,9 +14,13 @@ import java.util.Arrays;
 
 
 public class EmailController {
-    /** Classe controllore email per gestire l'operazione di visualizzazione mail */
+    /** Classe controller email per gestire le operazione di visualizzazione delle mail */
 
     public Mail selected_email;
+
+    /** Etichette per visualizzare il mittente, i destinatari, l'oggetto, la data, il corpo e
+     * le informazioni di backup delle mail
+     */
 
     @FXML
     public Label senderLabel;
@@ -37,20 +41,28 @@ public class EmailController {
 
 
     public void set_email(Mail example){
-        /** Funzione usata per selezionare l'email da visualizzare */
+        /** Funzione usata per selezionare l'email da visualizzare e riempie i dati
+         * @param example è l'email da visualizzare
+         */
+
         this.selected_email = example;
         fill_data(example);
     }
 
     public void fill_receivers(Mail example){
-        /** Ottiene i destinatari dai dati della classe mail e li mostra a schermo */
+        /** Ottiene i destinatari dai dati della classe mail e li mostra a schermo
+         * @param example è l'email i cui destinatari devono essere visualizzati.
+         */
+
         String[] receivs = example.getReceivers();
         String all_Receivs = String.join(",", receivs);
         receiverLabel.setText(all_Receivs);
     }
 
     public void fill_data(Mail example){
-        /** Riempe le caselle con i dati della mail */
+        /** Riempe le caselle con i dati della mail
+         * @param example è l'email i cui dati devono essere visualizzati.
+         */
         dateLabel.setText(example.getDate().toString());
         subjectLabel.setText(example.getTitle());
         senderLabel.setText(example.getSender());
@@ -58,11 +70,20 @@ public class EmailController {
         fill_receivers(example);
     }
 
+    /**
+     * Gestisce l'evento di ritorno alla casella di posta
+     * @param actionEvent è l'evento di ritorno alla casella di posta
+     */
+
     public void handleBackToInbox(ActionEvent actionEvent) {
         InboxController inbox_controller = Structures.change_scene((Stage) subjectLabel.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Inbox.fxml")));
         inbox_controller.access_inbox(backup);
     }
 
+    /**
+     * Gestisce l'evento di risposta a tutti i destinatari dell'email
+     * @param actionEvent è l'evento di risposta a tutti i destinatari dell'email
+      */
 
     public void handleReplyAll(ActionEvent actionEvent) {
         /**
@@ -81,6 +102,11 @@ public class EmailController {
         receivers.add(senderLabel.getText());
         send_controller.set_receivers(receivers.toArray(new String[0]));
     }
+
+    /**
+     * Gestisce l'evento di risposta al mittente dell'email
+     * @param actionEvent è l'evento di risposta al mittente dell'email
+     */
 
     public void handleReply(ActionEvent actionEvent) {
         /** Accede alla sezione Send */

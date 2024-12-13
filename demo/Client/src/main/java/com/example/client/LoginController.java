@@ -15,7 +15,8 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class LoginController {
-    /** Classe controllore per gestire il processo di login */
+    /** Classe controllore per gestire il processo di login, campo di testo dell'email,
+     * etichetta per la visualizzazione di errori di login ed email dell'utente  */
     @FXML
     private TextField emailField;
     @FXML
@@ -51,7 +52,5 @@ public class LoginController {
                 errorLabel.setText("Error connecting to server.");
             }
         }
-
-
     }
 }

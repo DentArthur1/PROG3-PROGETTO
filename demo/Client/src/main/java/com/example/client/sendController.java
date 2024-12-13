@@ -36,8 +36,14 @@ public class sendController {
 
     public SessionBackup backup;
 
+    /** Setter per metodo di reply/ reply all*/
+
     /**
-     * Setter per metodo di reply/ reply all*/
+     * Imposta l'oggetto dell'email per il metodo di risposta.
+     * @param subject L'oggetto dell'email.
+     */
+
+    /** Imposta il contenuto dell'email per il metodo di risposta. */
 
     public void set_subject(String subject) {
         subjectField.setText("RE:" + subject);
@@ -45,6 +51,12 @@ public class sendController {
     public void set_content(String content) {
         bodyArea.setText("RE:" + content);
     }
+
+    /**
+     * Imposta i destinatari dell'email.
+     * @param receivers I destinatari dell'email.
+     */
+
     public void set_receivers(String[] receivers) {
         for (int i = 0; i < receivers.length; i++) {
             toField.appendText(receivers[i]);
@@ -54,6 +66,8 @@ public class sendController {
             }
         }
     }
+
+    /** Aggiunge i destinatari alla lista dei destinatari. */
 
     @FXML
     protected void addReceiver() {
@@ -101,6 +115,8 @@ public class sendController {
         }
 
     }
+
+    /** invio dell'email */
 
     @FXML
     protected void sendEmail() {
