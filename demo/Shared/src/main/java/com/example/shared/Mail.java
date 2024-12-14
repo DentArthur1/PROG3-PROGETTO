@@ -21,7 +21,6 @@ public class Mail implements Serializable {
     private LocalDateTime date;
     private transient BooleanProperty selected;
     private int id; // Aggiunto campo ID per tenere traccia dell'ultimo ID della mail
-    private boolean modified; // Aggiunto campo modified per tenere traccia delle modifiche alla mail negli altri client
 
     /**
      * Costruttore per la creazione di una Mail

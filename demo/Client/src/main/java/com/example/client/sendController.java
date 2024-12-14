@@ -80,7 +80,7 @@ public class sendController {
                      ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
                      ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
 
-                    Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario, backup.getUserEmailBackup(), backup.getLastMailId());
+                    Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario,backup.getUserEmailBackup());
                     output.writeObject(request);
                     output.flush();
 
@@ -121,7 +121,7 @@ public class sendController {
         String[] destinatari = receiversList.getText().trim().split("\n"); // Legge tutti i destinatari
         System.out.println(Arrays.toString(destinatari));
         LocalDateTime date = LocalDateTime.now();
-        Mail new_mail = new Mail(backup.getUserEmailBackup(), oggetto, corpo, destinatari, date, backup.getLastMailId() + 1);
+        Mail new_mail = new Mail(backup.getUserEmailBackup(), oggetto, corpo, destinatari, date, Structures.generateUniqueInteger(date, backup.getUserEmailBackup()));
 
         /** Controllo della correttezza degli input */
         if (destinatari.length == 0 || oggetto.isEmpty() || corpo.isEmpty()) {
@@ -135,7 +135,7 @@ public class sendController {
              ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream())) {
 
             // Costruisco la richiesta
-            Request<Mail> new_mail_to_send = new Request<>(Structures.SEND_MAIL, new_mail, backup.getUserEmailBackup(), backup.getLastMailId());
+            Request<Mail> new_mail_to_send = new Request<>(Structures.SEND_MAIL, new_mail, backup.getUserEmailBackup());
             output.writeObject(new_mail_to_send);
 
             // Se l'email è inviata con successo

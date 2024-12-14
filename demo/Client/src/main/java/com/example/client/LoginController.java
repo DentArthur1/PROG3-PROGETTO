@@ -26,7 +26,7 @@ public class LoginController {
 
     public void handleLogin() {
         /** Funzione che giudica l'input dell'utente e agisce di conseguenza */
-        user_mail = emailField.getText();
+        user_mail = emailField.getText().trim();
 
         if (!Structures.isValidEmail(user_mail)) {
             errorLabel.setText("Invalid email format. Please try again.");
@@ -35,7 +35,7 @@ public class LoginController {
                  ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
                  ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
 
-                Request<String> request = new Request<>(Structures.LOGIN_CHECK, user_mail, user_mail, 0);
+                Request<String> request = new Request<>(Structures.LOGIN_CHECK, user_mail, user_mail);
                 output.writeObject(request);
                 output.flush();
 

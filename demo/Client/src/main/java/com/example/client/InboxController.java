@@ -103,7 +103,7 @@ public class InboxController {
             /** La sessione non è ancora iniziata(è stata creata la classe in Login) */
             backup = sessionBackup;
             emailList = get_new_emails();
-            sessionBackup.startSession(emailList, getLastMailId(emailList));
+            sessionBackup.startSession(emailList);
             set_user_email(backup.getUserEmailBackup());
         } else {
             /** Una sessione è già attiva, procedo a ripristinarla */
@@ -141,7 +141,6 @@ public class InboxController {
                             }
                         }
                         backup.setEmailBackup(FXCollections.observableArrayList(emailList)); // Aggiorna il backup
-                        backup.setLastMailId(getLastMailId(emailList)); // Aggiorna l'ultimo ID della mail
                     }
                 });
             }
@@ -195,7 +194,7 @@ public class InboxController {
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
 
-            Request<String> ping_request = new Request<>(Structures.PING, "ping", backup.getUserEmailBackup(), backup.getLastMailId());
+            Request<String> ping_request = new Request<>(Structures.PING, "ping", backup.getUserEmailBackup());
             output.writeObject(ping_request);
             Request<?> pong_request = (Request<?>) input.readObject();
 
@@ -212,27 +211,30 @@ public class InboxController {
      */
 
     private ObservableList<Mail> get_new_emails() {
-        /** Funzione per ottenere le nuove email dal server da mostrare a schermo */
         ObservableList<Mail> parsed_mails = FXCollections.observableArrayList();
+        List<Integer> existingIds = new ArrayList<>();
+
+        if (emailList != null){ //Dopo la prima run
+            for (Mail mail : emailList) {
+                existingIds.add(mail.getId());
+            }
+        }
 
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
 
-            Request<String> mail_update_request = new Request<>(Structures.UPDATE_MAILS, backup.getUserEmailBackup(), backup.getUserEmailBackup(), backup.getLastMailId());
+            Request<List<Integer>> mail_update_request = new Request<>(Structures.UPDATE_MAILS, existingIds, backup.getUserEmailBackup());
             output.writeObject(mail_update_request);
 
             Request<?> new_mails = (Request<?>) input.readObject();
 
-
             if (new_mails.getRequestCode() == Structures.UPDATE_MAILS) {
                 ArrayList<Mail> mails = (ArrayList<Mail>) new_mails.getPayload();
-                //---
-                for (Mail mail : mails) { //RECUPERO IL CAMPO PERSO DURANTE LA SERIALIZZAZIONE
+                for (Mail mail : mails) {
                     mail.recover_from_serialization();
                 }
-                //---
                 parsed_mails.addAll(mails);
             }
         } catch (Exception e) {
@@ -261,20 +263,17 @@ public class InboxController {
 
     @FXML
     protected void handleLogout() {
-        /** Torno alla schermata di login */
         stop_email_update();
         stop_ping_timer();
         Structures.change_scene((Stage) emailTable.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Login.fxml")));
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-            Request<String> logout_request = new Request<>(Structures.LOGOUT, "", backup.getUserEmailBackup(), backup.getLastMailId());
+            Request<String> logout_request = new Request<>(Structures.LOGOUT, "", backup.getUserEmailBackup());
             output.writeObject(logout_request);
-
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Failed requesting logout.");
         }
-
     }
 
     @FXML
@@ -296,14 +295,16 @@ public class InboxController {
                 selectedEmails.add(email);
             }
         }
-
         // Elimino le mail localmente, dalla lista della inbox
         emailList.removeAll(selectedEmails);
 
+        //ottengo l'array di id da eliminare
+        ArrayList<Integer> mail_ids = get_mail_ids(selectedEmails);
         // Invio la richiesta di eliminazione al server
         try (Socket clientSocket = new Socket("localhost", Structures.PORT);
              ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream())) {
-            Request<ArrayList<Mail>> mailsToDelete = new Request<>(Structures.DELETE, selectedEmails, backup.getUserEmailBackup(), backup.getLastMailId());
+
+            Request<ArrayList<Integer>> mailsToDelete = new Request<>(Structures.DELETE, mail_ids, backup.getUserEmailBackup());
             output.writeObject(mailsToDelete);
         } catch (Exception e) {
             System.out.println("Failed deleting mails.");
@@ -315,6 +316,17 @@ public class InboxController {
         // Aggiorna la vista della lista delle email
         emailTable.refresh(); // Aggiorna la vista della TableView
     }
+
+    /**
+     * Ottengo un array di id delle mail come argomento*/
+    private ArrayList<Integer> get_mail_ids(ArrayList<Mail> mails) {
+        ArrayList<Integer> mail_ids = new ArrayList<>();
+        for (Mail mail : mails) {
+            mail_ids.add(mail.getId());
+        }
+        return mail_ids;
+    }
+
 
     /**
      * Ripristina la inbox.

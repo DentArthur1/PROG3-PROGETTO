@@ -43,16 +43,12 @@ public class MessageService {
      * @param receiver email of the user whose inbox is to be loaded
      * @return list of emails received by the user
      */
-    public synchronized ArrayList<Mail> getMessagesByReceiver(String receiver, String email) {
-        ArrayList<Mail> allMessages = loadMessages(email);
+    public synchronized ArrayList<Mail> getMessagesByReceiver(String receiver, List<Integer> existingIds) {
+        ArrayList<Mail> allMessages = loadMessages(receiver);
         ArrayList<Mail> filteredMessages = new ArrayList<>();
         for (Mail message : allMessages) {
-            if (!message.isModified()) { // Filtra le mail modificate
-                for (String msg_receiver : message.getReceivers()) {
-                    if (msg_receiver.equals(receiver)) {
-                        filteredMessages.add(message);
-                    }
-                }
+            if (!existingIds.contains(message.getId())) {
+                filteredMessages.add(message);
             }
         }
         return filteredMessages;

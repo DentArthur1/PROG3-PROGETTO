@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -30,7 +31,7 @@ public class Structures {
     public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
     public static final int PORT = 8081; /** Porta del server*/
     /** Percorsi dei file */
-    public static final String FILE_PATH = "demo/Server/src/main/resources/data.txt";
+    public static final String FILE_PATH = "demo/Server/src/main/resources/";
     public static final String USER_PATH = "demo/Server/src/main/resources/users.txt";
     /** Codici operativi richieste */
     public static final int PING = 0;
@@ -88,6 +89,18 @@ public class Structures {
             }
         }
         return false;
+    }
+
+    public static int generateUniqueInteger(LocalDateTime dateTime, String inputString) {
+        // Formattare LocalDateTime in una stringa rappresentativa
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+        String formattedDateTime = dateTime.format(formatter);
+
+        // Combinare la stringa temporale con la stringa di input
+        String combined = formattedDateTime + inputString;
+
+        // Generare un hashcode dal valore combinato
+        return combined.hashCode();
     }
 
     /**

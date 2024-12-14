@@ -31,7 +31,7 @@
             <TableView fx:id="emailTable" onMouseClicked="#handleEmailClick">
                 <columns>
                     <!-- Colonna per il destinatario con larghezza fissa -->
-                    <TableColumn fx:id="receiversColumn" text="Destinatario" prefWidth="200" />
+                    <TableColumn fx:id="receiversColumn" text="Mittente" prefWidth="200" />
 
                     <!-- Colonna per il titolo che si espande automaticamente -->
                     <TableColumn fx:id="subjectColumn" text="Titolo" />

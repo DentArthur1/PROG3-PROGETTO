@@ -11,23 +11,20 @@ public class Request<T> implements Serializable {
      */
 
     private int REQUEST_CODE;
-    private String AUTH_TOKEN;
     private T payload; // Dichiarazione di un riferimento generico
-    private int lastMailId; // Aggiunto campo per tenere traccia dell'ultimo ID della mail
-
+    private String requestId;
     /**
      * Costruttore per creare una nuova richiesta.
      * @param requestCode il codice della richiesta.
      * @param payload il payload della richiesta.
-     * @param authToken il token di autenticazione.
-     * @param lastMailId l'ultimo ID della mail.
+     * @param requestId la mail di chi ha fatto la richiesta.
      */
 
-    public Request(int requestCode, T payload, String authToken, int lastMailId) {
+    public Request(int requestCode, T payload, String requestId) {
         this.REQUEST_CODE = requestCode;
         this.payload = payload;
-        this.AUTH_TOKEN = authToken;
-        this.lastMailId = lastMailId;
+        this.requestId = requestId;
+
     }
 
     // Getter e Setter
@@ -39,8 +36,8 @@ public class Request<T> implements Serializable {
 
     /** Restituisce il token di autenticazione. */
 
-    public String getAuthToken() {
-        return AUTH_TOKEN;
+    public String getRequestId() {
+        return this.requestId;
     }
 
     public void setRequestCode(int requestCode) {
