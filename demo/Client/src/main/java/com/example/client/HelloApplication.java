@@ -9,7 +9,7 @@ import java.io.IOException;
 /** Main class */
 
 /**
- * Medo di avvio dell'applicazione
+ * Medodo di avvio dell'applicazione
  * @throws IOException viene lanciata se si verifica un errore durante il caricamento della scena
  */
 

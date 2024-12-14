@@ -131,10 +131,15 @@ public class Mail implements Serializable {
         this.id = id;
     }
 
-    public void recover_from_serialization() {
+    public void recover_from_serialization() { // Recupera la proprietà `selected` dopo la deserializzazione
         this.selected = new SimpleBooleanProperty(false);
     }
 
+    /**
+     * Metodo `equals` per la comparazione di due oggetti `Mail`
+     * Verifica se due oggetti `Mail` sono uguali confrontando i campi
+     * `sender`, `title`, `content`, `receivers`, `date` e `id`
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -148,6 +153,12 @@ public class Mail implements Serializable {
                 Objects.equals(date, mail.date);
     }
 
+    /**
+     * Metodo `hashCode`.
+     * Calcola l'hash code dell'oggetto `Mail` basandosi sui campi
+     * `sender`, `title`, `content`, `receivers`, `date` e `id`
+     * @return Hash code dell'oggetto `Mail`
+     */
     @Override
     public int hashCode() {
         int result = Objects.hash(sender, title, content, date, id);

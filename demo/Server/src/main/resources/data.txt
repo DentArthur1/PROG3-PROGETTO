@@ -13,4 +13,3 @@ raffaele@sigmamail.com§PROVOLA§asdfdfsgafd§ciao@sigmamail.com§2024-12-13T20:
 ciao@sigmamail.com§RE:MANNAGGIA§RE:dssdfasdfads§a@sigmamail.com,raffaele@sigmamail.com§2024-12-13T20:25:03.754677023§10§false
 a@sigmamail.com§LUIGI'S MAGION§dsfasdffdsfds§ciao@sigmamail.com§2024-12-13T20:45:54.898702762§11§true
 daniele@sigmamail.com§test§test eliminazione§daniele@sigmamail.com,samuele@sigmamail.com§2024-12-14T12:56:37.947426700§1§false
-daniele@sigmamail.com§eliminazione multipla§prova eliminazione multipla§daniele@sigmamail.com§2024-12-14T13:00:46.161517900§2§true

@@ -23,13 +23,16 @@ public class Structures {
      * @param EMAIL_REGEX: espressione regolare per la validazione delle email, prende solo domini con almeno 2 caratteri e con un solo punto
      * @param PORT: porta del server
      */
-    public static final int SCENE_WIDTH = 500;
-    public static final int SCENE_HEIGHT = 500;
+    /** Dimensioni della scena */
+    public static final int SCENE_WIDTH = 500; /** Larghezza della scena*/
+    public static final int SCENE_HEIGHT = 500; /** Altezza della scena*/
+    /** Espressione regolare per la validazione delle email */
     public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
     public static final int PORT = 8081; /** Porta del server*/
+    /** Percorsi dei file */
     public static final String FILE_PATH = "demo/Server/src/main/resources/data.txt";
     public static final String USER_PATH = "demo/Server/src/main/resources/users.txt";
-    //Codici operativi richieste
+    /** Codici operativi richieste */
     public static final int PING = 0;
     public static final int UPDATE_MAILS = 1;
     public static final int SEND_MAIL = 2;
@@ -42,8 +45,16 @@ public class Structures {
     public static final int LOGOUT = 9;
     public static final int DELETE = 10;
 
+
+    /**
+     * Metodo utilizzato per cambiare scena e ritorna l'istanza del nuovo controller.
+     * @param current_stage lo stage corrente.
+     * @param prova il FXMLLoader della nuova scena.
+     * @param <T> il tipo del controller.
+     * @return l'istanza del nuovo controller.
+     */
+
     public static <T> T change_scene(Stage current_stage,  FXMLLoader prova){
-        /**Metodo utilizzato per cambiare scena e ritorna l'istanza del nuovo controller*/
         try{
             Scene scene = new Scene(prova.load(), SCENE_WIDTH , SCENE_HEIGHT);
             current_stage.setScene(scene);
@@ -60,6 +71,13 @@ public class Structures {
         /**DOPO AVER CAMBIATO SCENA È NECESSARIO "PASSARE" AL NUOVO CONTROLLER IL BACKUP*/
     }
 
+    /**
+     * Metodo per verificare se un utente esiste.
+     * @param email l'email dell'utente.
+     * @return true se l'utente esiste, altrimenti false.
+     * @throws IOException se si verifica un errore durante la lettura del file.
+     */
+
     public static boolean checkUserExists(String email) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(Structures.USER_PATH))) {
             String line;
@@ -71,8 +89,14 @@ public class Structures {
         }
         return false;
     }
+
+    /**
+     * Metodo per la verifica della sintassi delle email.
+     * @param email l'email da verificare.
+     * @return true se l'email è valida, altrimenti false.
+     */
+
     public static boolean isValidEmail(String email) {
-        /**Metodo per la verifica della sintassi delle mail*/
         return Pattern.matches(EMAIL_REGEX, email);
     }
 }
