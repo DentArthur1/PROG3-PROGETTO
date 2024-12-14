@@ -11,3 +11,4 @@ ciao@sigmamail.com§OH§OHHH§a@sigmamail.com,raffaele@sigmamail.com§2024-12-13
 raffaele@sigmamail.com§MANNAGGIA§dssdfasdfads§ciao@sigmamail.com§2024-12-13T20:21:42.968526653§9§true
 raffaele@sigmamail.com§PROVOLA§asdfdfsgafd§ciao@sigmamail.com§2024-12-13T20:22:15.945988362§9§false
 ciao@sigmamail.com§RE:MANNAGGIA§RE:dssdfasdfads§a@sigmamail.com,raffaele@sigmamail.com§2024-12-13T20:25:03.754677023§10§false
+a@sigmamail.com§LUIGI'S MAGION§dsfasdffdsfds§ciao@sigmamail.com§2024-12-13T20:45:54.898702762§11§true
