@@ -17,20 +17,11 @@ public class MessageService {
     }
 
     public synchronized ArrayList<Mail> loadMessages(String email) {
-        System.out.println("Loading Messages from " + servermanager.getClientFilePointer(email));
         ArrayList<Mail> messages = new ArrayList<>();
-        int lineNumber = 0;
-        try (BufferedReader reader = new BufferedReader(new FileReader(Structures.FILE_PATH))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(Structures.FILE_PATH + email.split("@")[0] + ".txt"))) {
             String line;
-            int pointer = servermanager.getClientFilePointer(email); // Value of the file pointer
-
             while ((line = reader.readLine()) != null) {
-                if (lineNumber < pointer) { // Skip lines with index < pointer
-                    lineNumber++;
-                    continue;
-                }
-                messages.add(Mail.fromLine(line)); // Add the message from the line
-                lineNumber++;
+                messages.add(Mail.fromLine(line));
             }
         } catch (IOException e) {
             System.err.println("Error reading the file: " + e.getMessage());
@@ -55,18 +46,5 @@ public class MessageService {
         return filteredMessages;
     }
 
-    public synchronized ArrayList<Mail> loadAllMailfromUser() {
-        ArrayList<Mail> messages = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(Structures.FILE_PATH))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                Mail mail = Mail.fromLine(line);
-                messages.add(mail);
 
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading the file: " + e.getMessage());
-        }
-        return messages;
-    }
 }
