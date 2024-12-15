@@ -8,10 +8,10 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class HelloApplication extends Application {
+public class Server extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("ServerDashboard.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Server.class.getResource("ServerDashboard.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), Structures.SCENE_WIDTH, Structures.SCENE_HEIGHT);
         stage.setTitle("Mail Server");
         stage.setScene(scene);

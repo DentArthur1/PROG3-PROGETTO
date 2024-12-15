@@ -73,24 +73,26 @@ public class InboxController {
         return new TableCell<>() {
             private final CheckBox checkBox = new CheckBox();
 
+            {
+                checkBox.setOnAction(event -> {
+                    Mail mail = getTableRow().getItem();
+                    if (mail != null) {
+                        mail.setSelected(checkBox.isSelected());
+                    }
+                });
+            }
             @Override
             protected void updateItem(Boolean item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null); /** Nessuna checkbox per celle vuote */
+                if (empty || item == null) {
+                    setGraphic(null);
                 } else {
-                    setGraphic(checkBox); /** Mostra la checkbox */
-                    checkBox.setSelected(item != null && item); /** Sincronizza lo stato */
-                    checkBox.setOnAction(event -> {
-                        Mail mail = getTableRow().getItem(); /** Ottieni l'email associata alla riga */
-                        if (mail != null) {
-                            mail.setSelected(checkBox.isSelected()); /** Aggiorna la proprietà "selected" */
-                        }
-                    });
+                    checkBox.setSelected(item);
+                    setGraphic(checkBox);
                 }
             }
         };
     }
+
 
     /**
      * Metodo per accedere alla casella di posta (inbox)
@@ -144,13 +146,11 @@ public class InboxController {
                     }
                 });
             }
-        }, 10000, 10000); /** Aggiorna ogni 10 secondi */
+        }, 1000, 1000); /** Aggiorna ogni secondo */
     }
 
     /**
      * Ferma l'aggiornamento delle mail quando cambio scena o faccio logout
-     * (CAMBIANDO CONTROLLER E TORNANDO ALLA INBOX SI PERDE IL RIFERIMENTO AL TIMER PRECEDENTE
-     * RENDENDO INUTILE OGNI OPERAZIONE DI CANCELLAZIONE DEL TIMER PRECENDENTE)
      */
     private void stop_email_update(){
         // Fermiamo il timer di aggiornamento delle email
@@ -162,8 +162,6 @@ public class InboxController {
 
     /**
      * Ferma la funzione di ping del server
-     * (CAMBIANDO CONTROLLER E TORNANDO ALLA INBOX SI PERDE IL RIFERIMENTO AL TIMER PRECEDENTE
-     * RENDENDO INUTILE OGNI OPERAZIONE DI CANCELLAZIONE DEL TIMER PRECENDENTE)
      */
     private void stop_ping_timer(){
         if (pingTimer != null) {
@@ -200,7 +198,6 @@ public class InboxController {
 
             return pong_request.getRequestCode() == Structures.PING;
         } catch (Exception e) {
-            e.printStackTrace();
             return false;
         }
     }

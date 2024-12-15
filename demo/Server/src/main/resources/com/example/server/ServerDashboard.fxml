@@ -13,7 +13,7 @@
     </padding>
 
     <!-- Etichetta -->
-    <Label text="Negus Controller" />
+    <Label text="Server Controller" />
 
     <!-- Bottone per avviare il server -->
     <Button fx:id="startButton" text="Avvia Server" onAction="#startServer" />
