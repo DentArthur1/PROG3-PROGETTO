@@ -33,6 +33,8 @@ public class InboxController {
     private TableColumn<Mail, String> receiversColumn;
     @FXML
     private TableColumn<Mail, String> subjectColumn;
+    @FXML
+    public TableColumn<Mail, String> previewColumn;
     public SessionBackup backup;
     private Timer pingTimer;
     private Timer emailUpdateTimer;
@@ -60,6 +62,9 @@ public class InboxController {
         /** Configura le altre colonne */
         receiversColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSender()));
         subjectColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
+        previewColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getContent()));
+        /** Per prevenire l'aggiunta di nuove colonne inutili */
+        emailTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         /** Inizializza il ping task */
         startPingTask();
@@ -173,10 +178,10 @@ public class InboxController {
     private void updateServerStatus() {
         Platform.runLater(() -> {
             if (isServerActive()) {
-                connectionStatus.setText("Connessione: Attiva");
+                connectionStatus.setText("Attiva");
                 connectionStatus.setStyle("-fx-text-fill: green;");
             } else {
-                connectionStatus.setText("Connessione: Non Attiva");
+                connectionStatus.setText("Non Attiva");
                 connectionStatus.setStyle("-fx-text-fill: red;");
             }
         });

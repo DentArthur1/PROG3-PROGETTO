@@ -25,7 +25,7 @@ public class Structures {
      * @param PORT: porta del server
      */
     /** Dimensioni della scena */
-    public static final int SCENE_WIDTH = 550; /** Larghezza della scena*/
+    public static final int SCENE_WIDTH = 650; /** Larghezza della scena*/
     public static final int SCENE_HEIGHT = 500; /** Altezza della scena*/
     /** Espressione regolare per la validazione delle email */
     public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
