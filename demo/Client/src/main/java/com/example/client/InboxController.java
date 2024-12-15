@@ -130,7 +130,7 @@ public class InboxController {
             public void run() {
                 updateServerStatus();
             }
-        }, 0, 500); // Ping every 5 seconds
+        }, 0, 500); // Ping every 0.5 seconds
     }
 
     /** Avvia un task periodico per aggiornare le email */
