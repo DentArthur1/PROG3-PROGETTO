@@ -56,22 +56,25 @@ public class ServerManager implements Runnable {
                     Socket clientSocket = serverSocket.accept(); // Wait for a new client
                     serverController.addLog("Connection received from: " + clientSocket.getInetAddress());
 
-                    // Read client authentication
-                    try {
-                        ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
-                        ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-                        Request<?> generic_request = (Request<?>) input.readObject();
+                    new Thread(() -> {
+                        // Read client authentication
+                        try {
+                            ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
+                            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+                            Request<?> generic_request = (Request<?>) input.readObject();
 
-                        // Create a new ClientManager for the client
-                        ClientManager clientManager = new ClientManager(serverController, this, output, input, clientSocket);
-                        clientManager.set_socket(clientSocket);
+                            // Create a new ClientManager for the client
+                            ClientManager clientManager = new ClientManager(serverController, this, output, input, clientSocket);
+                            clientManager.set_socket(clientSocket);
 
-                        //chiamo handle_client
-                        clientManager.handleClient(generic_request);
+                            //chiamo handle_client
+                            clientManager.handleClient(generic_request);
 
-                    } catch (Exception e) {
-                        serverController.addLog("Authentication process failed");
-                    }
+                        } catch (Exception e) {
+                            serverController.addLog("Authentication process failed");
+                        }
+                    }).start();
+
 
                 } catch (IOException e) {
                     if (running) {
