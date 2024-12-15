@@ -14,11 +14,11 @@ public class ServerManager implements Runnable {
     private ServerSocket serverSocket;
     private final ServerController serverController;
 
-
     public ServerManager(ServerController serverController) {
         this.serverController = serverController;
     }
 
+    /** Avvia il server (thread) */
     public synchronized void start() {
         if (running) {
             serverController.addLog("The server is already running.");
@@ -29,6 +29,7 @@ public class ServerManager implements Runnable {
         serverController.addLog("Server started.");
     }
 
+    /** Ferma il server (socket) */
     public synchronized void stop() {
         if (!running) {
             serverController.addLog("The server is not running.");
@@ -53,17 +54,17 @@ public class ServerManager implements Runnable {
 
             while (running) {
                 try {
-                    Socket clientSocket = serverSocket.accept(); // Wait for a new client
+                    Socket clientSocket = serverSocket.accept(); // Aspetta una connessione
                     serverController.addLog("Connection received from: " + clientSocket.getInetAddress());
 
                     new Thread(() -> {
-                        // Read client authentication
+                        // Legge la richiesta del client e crea un ClientManager per gestirla
                         try {
                             ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
                             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
                             Request<?> generic_request = (Request<?>) input.readObject();
 
-                            // Create a new ClientManager for the client
+                            // crea un nuovo client manager
                             ClientManager clientManager = new ClientManager(serverController, this, output, input, clientSocket);
                             clientManager.set_socket(clientSocket);
 
@@ -89,6 +90,7 @@ public class ServerManager implements Runnable {
         }
     }
 
+    /** Pulisce il server socket */
     private void cleanup() {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
@@ -98,7 +100,4 @@ public class ServerManager implements Runnable {
             serverController.addLog("Error during server socket cleanup: " + e.getMessage());
         }
     }
-
-
-
 }

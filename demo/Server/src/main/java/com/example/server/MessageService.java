@@ -16,6 +16,7 @@ public class MessageService {
         this.servermanager = servermanager;
     }
 
+    /** Metodo per salvare i messaggi in un file */
     public synchronized ArrayList<Mail> loadMessages(String email) {
         ArrayList<Mail> messages = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(Structures.FILE_PATH + email.split("@")[0] + ".txt"))) {

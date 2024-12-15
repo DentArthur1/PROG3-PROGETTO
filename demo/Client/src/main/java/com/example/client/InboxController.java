@@ -38,7 +38,7 @@ public class InboxController {
     private Timer emailUpdateTimer;
 
     /**
-     * @param email è l'email dell'utente
+     * @param email è l'email dell'utente per la quale si vuole visualizzare la casella di posta
      */
 
     @FXML
@@ -66,7 +66,7 @@ public class InboxController {
         startEmailUpdateTask();
     }
 
-    /** Metodo per creare una cella con checkbox
+    /** Metodo per creare una cella con checkbox per selezionare le email
      * @return della cella con checkbox
      */
     private TableCell<Mail, Boolean> createCheckboxCell() {
@@ -102,7 +102,7 @@ public class InboxController {
     public void access_inbox(SessionBackup sessionBackup) {
         /** Accedo a una sessione di Inbox esistente o ne creo una nuova */
         if (!sessionBackup.isSessionStarted()) {
-            /** La sessione non è ancora iniziata(è stata creata la classe in Login) */
+            /** La sessione non è ancora iniziata (è stata creata la classe in Login) */
             backup = sessionBackup;
             emailList = get_new_emails();
             sessionBackup.startSession(emailList);
@@ -216,7 +216,6 @@ public class InboxController {
                 existingIds.add(mail.getId());
             }
         }
-
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
@@ -256,7 +255,7 @@ public class InboxController {
         }
     }
 
-    /** Viene gestito il logout */
+    /** Viene gestito il logout dell'utente */
 
     @FXML
     protected void handleLogout() {
@@ -273,9 +272,9 @@ public class InboxController {
         }
     }
 
+    /** Accedo ad una schermata pe la composizione di una nuova mail */
     @FXML
     protected void handleCompose() {
-        /** Accedo alla sezione "Composizione mail" */
         stop_email_update();
         stop_ping_timer();
         sendController send_controller = Structures.change_scene((Stage) emailTable.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Send.fxml")));
@@ -315,7 +314,10 @@ public class InboxController {
     }
 
     /**
-     * Ottengo un array di id delle mail come argomento*/
+     * Ottengo un array di id delle mail selezionate
+     * @param mails lista delle mail selezionate
+     * @return l'array di id delle mail selezionate
+     */
     private ArrayList<Integer> get_mail_ids(ArrayList<Mail> mails) {
         ArrayList<Integer> mail_ids = new ArrayList<>();
         for (Mail mail : mails) {
@@ -326,8 +328,8 @@ public class InboxController {
 
 
     /**
-     * Ripristina la inbox.
-     * @param sessionBackup backup della sessione.
+     * Ripristina la inbox da un backup
+     * @param sessionBackup è il backup della sessione
      */
 
     private void restore_inbox(SessionBackup sessionBackup) {
@@ -338,9 +340,9 @@ public class InboxController {
     }
 
     /**
-     * Ottiene l'ultimo ID della mail dalla lista delle email.
-     * @param emailList lista delle email.
-     * @return l'ultimo ID della mail.
+     * Ottiene l'ultimo ID della mail dalla lista delle email
+     * @param emailList lista delle email
+     * @return l'ultimo ID della mail
      */
     private int getLastMailId(ObservableList<Mail> emailList) {
         return emailList.stream().mapToInt(Mail::getId).max().orElse(0);

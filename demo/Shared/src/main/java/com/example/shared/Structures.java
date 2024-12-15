@@ -91,6 +91,12 @@ public class Structures {
         return false;
     }
 
+    /**
+     * Metodo per generare un intero univoco
+     * @param dateTime il tempo corrente
+     * @param inputString la stringa di input
+     * @return un intero univoco
+     */
     public static int generateUniqueInteger(LocalDateTime dateTime, String inputString) {
         // Formattare LocalDateTime in una stringa rappresentativa
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");

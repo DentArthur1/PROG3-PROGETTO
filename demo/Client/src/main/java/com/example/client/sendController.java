@@ -19,7 +19,9 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 
 public class sendController {
-    /** Classe controllore per gestire l'operazione di invio messaggi */
+    /** Classe controllore per gestire l'operazione di invio messaggi
+     * Questa classe consente all'utente di comporre, inviare email e gestire i destinatari.
+     */
 
     @FXML
     private TextField toField; // destinatari
@@ -36,27 +38,25 @@ public class sendController {
 
     public SessionBackup backup;
 
-    /** Setter per metodo di reply/ reply all*/
-
     /**
-     * Imposta l'oggetto dell'email per il metodo di risposta.
-     * @param subject L'oggetto dell'email.
+     * Imposta l'oggetto dell'email per il metodo di risposta
+     * @param subject L'oggetto dell'email
      */
     public void set_subject(String subject) {
         subjectField.setText("RE:" + subject);
     }
 
     /**
-     * Imposta il contenuto dell'email per il metodo di risposta.
-     * @param content Il contenuto dell'email.
+     * Imposta il contenuto dell'email per il metodo di risposta
+     * @param content Il contenuto dell'email
      */
     public void set_content(String content) {
         bodyArea.setText("RE:" + content);
     }
 
     /**
-     * Imposta i destinatari dell'email.
-     * @param receivers I destinatari dell'email.
+     * Imposta i destinatari dell'email
+     * @param receivers è un array di stringhe contenente gli indirizzi email dei destinatari
      */
     public void set_receivers(String[] receivers) {
         for (int i = 0; i < receivers.length; i++) {
@@ -68,7 +68,10 @@ public class sendController {
         }
     }
 
-    /** Aggiunge i destinatari alla lista dei destinatari. */
+    /**
+     * Aggiunge i destinatari alla lista dei destinatari.
+     * Verifica la validità degli indirizzi email prima di aggiungerli.
+     */
     @FXML
     protected void addReceiver() {
         String[] destinatari = toField.getText().trim().split(",");
@@ -80,10 +83,12 @@ public class sendController {
                      ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
                      ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
 
+                    // Crea una richiesta per verificare l'esistenza del destinatario
                     Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario,backup.getUserEmailBackup());
                     output.writeObject(request);
                     output.flush();
 
+                    // Ricevi la risposta dal server
                     Request<?> response = (Request<?>) input.readObject();
                     if (response.getRequestCode() == Structures.DEST_OK) {
                         // Aggiungi il destinatario alla lista visibile
@@ -111,7 +116,13 @@ public class sendController {
         }
     }
 
-    /** invio dell'email */
+    /**
+     * Invio dell'email
+     *
+     * Verifica che tutti i campi siano compilati correttamente e invia l'email
+     * al server tramite una connessione socket
+     */
+
     @FXML
     protected void sendEmail() {
         String oggetto = subjectField.getText().trim();
@@ -142,7 +153,7 @@ public class sendController {
             successLabel.setText("Email inviata con successo!");
             errorLabel.setText(""); // Pulisci eventuale messaggio di errore
 
-            /** Pulisce i campi (opzionale) */
+            // Pulisce i campi
             toField.clear();
             receiversList.clear();
             subjectField.clear();

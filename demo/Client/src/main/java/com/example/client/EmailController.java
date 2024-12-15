@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class EmailController {
+
     /** Classe controller email per gestire le operazione di visualizzazione delle mail */
 
     public Mail selected_email;
@@ -58,7 +59,8 @@ public class EmailController {
     }
 
     public void fill_data(Mail example){
-        /** Riempe le caselle con i dati della mail
+        /** Riempe i campi dell'interfaccia (mittente, oggetto, corpo, ecc.) con i dati dell'email.
+         * Chiama `fill_receivers` per gestire i destinatari.
          * @param example è l'email i cui dati devono essere visualizzati.
          */
         dateLabel.setText(example.getDate().toString());
@@ -70,6 +72,8 @@ public class EmailController {
 
     /**
      * Gestisce l'evento di ritorno alla casella di posta
+     * Cambia la scena alla schermata "Inbox.fxml".
+     * Passa i dati di sessione al nuovo controller per l'accesso alla casella di posta.
      * @param actionEvent è l'evento di ritorno alla casella di posta
      */
 
@@ -79,7 +83,14 @@ public class EmailController {
     }
 
     /**
-     * Gestisce l'evento di risposta a tutti i destinatari dell'email
+     * Gestisce l'evento di risposta a tutti i destinatari dell'email tramite il pulsante "Reply All"
+     * Cambia la scena alla schermata di composizione della mail per rispondere a tutti i destinatari.
+     *
+     * Cambia la scena alla schermata "Send.fxml".
+     * Rimuove l'email dell'utente dai destinatari per evitare di auto-inviarsi la risposta.
+     * Aggiunge il mittente dell'email originale come destinatario.
+     * Passa i dati (oggetto, contenuto e destinatari) alla nuova schermata.
+     *
      * @param actionEvent è l'evento di risposta a tutti i destinatari dell'email
      */
 
@@ -102,8 +113,14 @@ public class EmailController {
     }
 
     /**
-     * Gestisce l'evento di risposta al mittente dell'email
-     * @param actionEvent è l'evento di risposta al mittente dell'email
+     * Gestisce l'evento di risposta al mittente dell'email tramite il pulsante "Reply"
+     * Cambia la scena alla schermata di composizione della mail per rispondere al mittente
+     *
+     * Cambia la scena alla schermata "Send.fxml"
+     * Passa il mittente dell'email originale come unico destinatario
+     * imposta i dati (oggetto, contenuto e destinatario) alla nuova schermata di composizione
+     *
+     * @param actionEvent è l'evento di risposta del pulsante "Reply"
      */
 
     public void handleReply(ActionEvent actionEvent) {

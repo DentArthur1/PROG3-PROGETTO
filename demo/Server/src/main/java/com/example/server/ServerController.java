@@ -16,11 +16,13 @@ public class ServerController {
 
     private ServerManager serverManager; // Gestione separata del server
 
+    /** Inizializza il controller */
     public void initialize() {
         stopButton.setDisable(true);
         stopButton.setVisible(false);
     }
 
+    /** Avvia il server */
     @FXML
     public void startServer() {
         if (serverManager == null) {
@@ -35,6 +37,7 @@ public class ServerController {
         stopButton.setVisible(true);
     }
 
+    /** Ferma il server */
     @FXML
     public void stopServer() {
         if (serverManager != null) {
@@ -48,6 +51,7 @@ public class ServerController {
         }
     }
 
+    /** Aggiunge un log alla ListView */
     public void addLog(String message) {
         Platform.runLater(() -> logListView.getItems().add(message));
     }

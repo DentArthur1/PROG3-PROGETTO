@@ -27,10 +27,12 @@ public class ClientManager {
     }
 
 
+    /** Getter e setter per il socket del client (per la chiusura della connessione) */
     public void set_socket(Socket socket) {
         this.clientSocket = socket;
     }
 
+    /** Metodo per gestire le richieste del client */
     public synchronized void handleClient(Request<?> request) {
         try {
             // Switch-case per gestire le richieste
@@ -56,6 +58,7 @@ public class ClientManager {
         }
     }
 
+    /** Metodi per gestire le richieste del client */
     private synchronized void handleUpdateMails(Request<List<Integer>> request) {
         try {
             List<Integer> existingIds = request.getPayload();
@@ -68,6 +71,7 @@ public class ClientManager {
         }
     }
 
+    /** Metodo per gestire il ping */
     private synchronized void handlePing(Request<String> request) {
         try {
             Request<String> response = new Request<>(Structures.PING, "pong", "SERVER");
@@ -78,6 +82,7 @@ public class ClientManager {
         }
     }
 
+    /** Metodo per gestire l'invio di una mail */
     private synchronized void handleSendMail(Request<Mail> request) {
         try {
             Mail newMail = request.getPayload();
@@ -94,6 +99,7 @@ public class ClientManager {
         }
     }
 
+    /** Metodo per gestire la verifica del destinatario */
     private synchronized void handleDestCheck(Request<String> request) {
         try {
             String destEmail = request.getPayload();
@@ -107,6 +113,7 @@ public class ClientManager {
         }
     }
 
+    /** Metodo per gestire il logout */
     private synchronized void handleLogout() {
         serverController.addLog("Logout request received, resetting file pointer.");
         try {
@@ -116,6 +123,8 @@ public class ClientManager {
             serverController.addLog("Errore durante la chiusura della connessione: " + e.getMessage());
         }
     }
+
+    /** Metodo per gestire la verifica del login */
     private boolean handleLoginCheck(Request<String> request, ObjectOutputStream output) throws IOException {
         String userEmail = request.getPayload();
         boolean userExists = Structures.checkUserExists(userEmail);
@@ -136,6 +145,7 @@ public class ClientManager {
         return response_bool;
     }
 
+    /** Metodo per gestire la cancellazione delle mail */
     private synchronized void handleDelete(Request<ArrayList<Integer>> request) {
 
         String filePath = Structures.FILE_PATH + request.getRequestId().split("@")[0] + ".txt";
@@ -183,7 +193,7 @@ public class ClientManager {
         }
     }
 
-
+    /** Metodo per chiudere la connessione */
     private synchronized void closeConnection() {
         try {
             if (input != null) input.close();
