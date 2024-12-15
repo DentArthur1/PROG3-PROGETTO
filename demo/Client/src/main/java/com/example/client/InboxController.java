@@ -43,7 +43,7 @@ public class InboxController {
 
     @FXML
     public void set_user_email(String email) {
-        userMail.setText("Benvenuto," + email);
+        userMail.setText("" + email);
     }
 
     /** inizializzazione controller */

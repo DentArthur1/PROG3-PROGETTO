@@ -8,10 +8,12 @@
     <!-- Top Bar -->
     <top>
         <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 10;">
+            <Label text="BenvenutƏ," style="-fx-font-size: 18px; -fx-text-fill: black;" />
             <Label fx:id="userMail" text="" style="-fx-font-size: 18px; -fx-text-fill: blue;" />
+            <Region fx:id="spacer1" HBox.hgrow="ALWAYS"/>
             <!-- Connection Status Label -->
             <Label fx:id="connectionStatus" text="Connessione: Attiva" style="-fx-font-size: 14px; -fx-text-fill: green;" />
-            <Region fx:id="spacer" HBox.hgrow="ALWAYS"/>
+            <Region fx:id="spacer2" HBox.hgrow="ALWAYS"/>
             <Button text="Logout" onAction="#handleLogout"/>
         </HBox>
     </top>
