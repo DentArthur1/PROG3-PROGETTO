@@ -46,6 +46,7 @@ public class MessageService {
     public synchronized ArrayList<Mail> getMessagesByReceiver(String receiver, List<Integer> existingIds) {
         ArrayList<Mail> allMessages = loadMessages(receiver);
         ArrayList<Mail> filteredMessages = new ArrayList<>();
+        //Prendo solo le mail che il client non ha ancora
         for (Mail message : allMessages) {
             if (!existingIds.contains(message.getId())) {
                 filteredMessages.add(message);

@@ -135,24 +135,6 @@ public class Mail implements Serializable {
     }
 
     /**
-     * Metodo `equals` per la comparazione di due oggetti `Mail`
-     * Verifica se due oggetti `Mail` sono uguali confrontando i campi
-     * `sender`, `title`, `content`, `receivers`, `date` e `id`
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Mail mail = (Mail) o;
-        return id == mail.id &&
-                Objects.equals(sender, mail.sender) &&
-                Objects.equals(title, mail.title) &&
-                Objects.equals(content, mail.content) &&
-                Arrays.equals(receivers, mail.receivers) &&
-                Objects.equals(date, mail.date);
-    }
-
-    /**
      * Metodo `hashCode`.
      * Calcola l'hash code dell'oggetto `Mail` basandosi sui campi
      * `sender`, `title`, `content`, `receivers`, `date` e `id`

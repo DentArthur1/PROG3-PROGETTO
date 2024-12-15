@@ -83,7 +83,7 @@ public class ClientManager {
             Mail newMail = request.getPayload();
             serverController.addLog("Nuova mail ricevuta da: " + newMail.getSender());
             for (String destinatario : newMail.getReceivers()) {
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH + destinatario, true))) {
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH + destinatario.split("@")[0] + ".txt", true))) {
                     writer.write(newMail.toString());
                     writer.newLine();
                 }
@@ -138,7 +138,7 @@ public class ClientManager {
 
     private synchronized void handleDelete(Request<ArrayList<Integer>> request) {
 
-        String filePath = Structures.FILE_PATH + request.getRequestId();
+        String filePath = Structures.FILE_PATH + request.getRequestId().split("@")[0] + ".txt";
         ArrayList<Integer> mailIdsToDelete = request.getPayload();
 
         try {
