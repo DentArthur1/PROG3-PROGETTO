@@ -34,7 +34,7 @@ public class Request<T> implements Serializable {
         return REQUEST_CODE;
     }
 
-    /** Restituisce il token di autenticazione. */
+    /** Restituisce la mail di chi ha fatto la richiesta. */
 
     public String getRequestId() {
         return this.requestId;
@@ -54,18 +54,11 @@ public class Request<T> implements Serializable {
         this.payload = payload;
     }
 
-    /** Restituisce l'ultimo ID della mail. */
-    public int getLastMailId() {
-        return lastMailId;
-    }
 
-    /** Imposta l'ultimo ID della mail. */
-    public void setLastMailId(int lastMailId) {
-        this.lastMailId = lastMailId;
-    }
+
 
     @Override
     public String toString() {
-        return "[REQUEST_CODE=" + REQUEST_CODE + ", payload=" + payload + ", lastMailId=" + lastMailId + "]";
+        return "[REQUEST_CODE=" + REQUEST_CODE + ", payload=" + payload + "]";
     }
 }

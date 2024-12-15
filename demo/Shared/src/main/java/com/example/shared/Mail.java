@@ -40,7 +40,6 @@ public class Mail implements Serializable {
         this.date = date;
         this.selected = new SimpleBooleanProperty(false);
         this.id = id;
-        this.modified = false; // Inizializza come non modificata
     }
 
     /**
@@ -53,22 +52,10 @@ public class Mail implements Serializable {
         String[] parts = line.split("§");
         String[] receivs = parts[3].split(",");
         Mail mail = new Mail(parts[0], parts[1], parts[2], receivs, LocalDateTime.parse(parts[4]), Integer.parseInt(parts[5]));
-        if (parts.length > 6) {
-            mail.setModified(Boolean.parseBoolean(parts[6])); // Set the modified field if present
-        } else {
-            mail.setModified(false); // Default to false if not present
-        }
         return mail;
     }
 
     // Getter e setter per tutti i campi
-    public boolean isModified() {
-        return modified;
-    }
-
-    public void setModified(boolean modified) {
-        this.modified = modified;
-    }
 
     public String getSender() {
         return sender;
@@ -155,6 +142,6 @@ public class Mail implements Serializable {
      */
     @Override
     public String toString() {
-        return sender + "§" + title + "§" + content + "§" + String.join(",", receivers) + "§" + date + "§" + id + "§" + modified;
+        return sender + "§" + title + "§" + content + "§" + String.join(",", receivers) + "§" + date + "§" + id;
     }
 }
