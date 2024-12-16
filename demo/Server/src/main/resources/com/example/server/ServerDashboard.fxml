@@ -12,15 +12,11 @@
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
     </padding>
 
-    <!-- Etichetta -->
     <Label text="Server Controller" />
 
-    <!-- Bottone per avviare il server -->
     <Button fx:id="startButton" text="Avvia Server" onAction="#startServer" />
 
-    <!-- Bottone per spegnere il server -->
     <Button fx:id="stopButton" text="Spegni Server" onAction="#stopServer" />
 
-    <!-- Lista scrollabile dei log -->
     <ListView fx:id="logListView" prefHeight="600.0" prefWidth="600.0" />
 </VBox>

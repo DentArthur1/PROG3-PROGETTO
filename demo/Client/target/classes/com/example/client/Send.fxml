@@ -9,31 +9,24 @@
 <VBox spacing="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.example.client.sendController" alignment="TOP_LEFT" style="-fx-padding: 20;">
 
-    <!-- Campo per inserire un destinatario -->
     <Label text="Destinatario:" />
     <TextField fx:id="toField" promptText="Inserisci un indirizzo email" />
     <Button text="Aggiungi Destinatario" onAction="#addReceiver" />
 
-    <!-- Area di testo per mostrare la lista dei destinatari aggiunti -->
     <Label text="Destinatari aggiunti:" />
     <TextArea fx:id="receiversList" editable="false" promptText="Destinatari verranno visualizzati qui" wrapText="true" />
 
-    <!-- Campo per oggetto -->
     <Label text="Oggetto:" />
     <TextField fx:id="subjectField" promptText="Inserisci l'oggetto del messaggio" />
 
-    <!-- Campo per corpo del messaggio -->
     <Label text="Messaggio:" />
     <TextArea fx:id="bodyArea" promptText="Scrivi qui il corpo del messaggio" wrapText="true" />
 
-    <!-- Pulsante per inviare l'email -->
     <Button text="Invia" onAction="#sendEmail" />
 
-    <!-- Pulsante per tornare alla casella di posta -->
     <Button text="Indietro" onAction="#goBack" />
 
-    <!-- Etichetta per mostrare errori o conferme -->
     <Label fx:id="successLabel" textFill="green" />
-    <!-- Etichetta per mostrare errori o conferme -->
+
     <Label fx:id="errorLabel" textFill="red" />
 </VBox>
