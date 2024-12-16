@@ -11,10 +11,10 @@
     <center>
         <VBox alignment="CENTER" spacing="20.0">
             <!-- Titolo -->
-            <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Type your email here" />
+            <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Inserisci la tua mail" />
 
             <!-- Campo per inserire l'email -->
-            <TextField fx:id="emailField" maxWidth="300" prefHeight="32.0" prefWidth="184.0" promptText="Enter your email" style="-fx-font-size: 16px;" />
+            <TextField fx:id="emailField" maxWidth="300" prefHeight="32.0" prefWidth="184.0" promptText="Scrivi" style="-fx-font-size: 16px;" />
 
             <!-- Messaggio di errore sotto il campo email -->
             <Label fx:id="errorLabel" textFill="red" style="-fx-font-size: 14px;" />

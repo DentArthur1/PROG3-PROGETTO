@@ -131,11 +131,11 @@ public class ClientManager {
         int responseCode;
         boolean response_bool;
         if (userExists) {
-            serverController.addLog("User " + userEmail + " found. Sending LOGIN_OK.");
+            serverController.addLog("User " + userEmail + " trovato. Invio LOGIN_OK.");
             responseCode = Structures.LOGIN_OK;
             response_bool = true;
         } else {
-            serverController.addLog("User " + userEmail + " not found. Sending LOGIN_ERROR.");
+            serverController.addLog("User " + userEmail + " non trovato. Invio LOGIN_ERROR.");
             responseCode = Structures.LOGIN_ERROR;
             response_bool = false;
         }
