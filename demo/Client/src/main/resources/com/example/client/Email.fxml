@@ -12,27 +12,27 @@
         <VBox spacing="20" style="-fx-padding: 30; -fx-background-color: white; -fx-border-color: #d1d5db; -fx-border-radius: 10; -fx-background-radius: 10;">
 
             <!-- Titolo della Mail -->
-            <Label style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #34495e; -fx-underline: true;" text="Email Details" />
+            <Label style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #34495e; -fx-underline: true;" text="Dettagli Mail:" />
 
             <!-- Dettagli della mail -->
             <VBox spacing="12" style="-fx-padding: 10;">
                 <HBox spacing="15">
-                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="From:" />
+                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Da:" />
                     <Label fx:id="senderLabel" style="-fx-font-size: 18px; -fx-text-fill: #2c3e50;" text="Sender Email" />
                 </HBox>
 
                 <HBox spacing="15">
-                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="To:" />
+                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="A:" />
                     <Label fx:id="receiverLabel" style="-fx-font-size: 18px; -fx-text-fill: #2c3e50;" text="Receiver Email" />
                 </HBox>
 
                 <HBox spacing="15">
-                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Subject:" />
+                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Soggetto:" />
                     <Label fx:id="subjectLabel" style="-fx-font-size: 18px; -fx-text-fill: #2c3e50;" text="Email Subject" />
                 </HBox>
 
                 <HBox spacing="15">
-                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Date:" />
+                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Data:" />
                     <Label fx:id="dateLabel" style="-fx-font-size: 18px; -fx-text-fill: #2c3e50;" text="Sent Date" />
                 </HBox>
             </VBox>
@@ -40,8 +40,8 @@
             <!-- Corpo del messaggio con ScrollPane -->
             <ScrollPane fitToWidth="true" style="-fx-padding: 10; -fx-background-color: transparent;">
                 <VBox spacing="15" style="-fx-padding: 15; -fx-background-color: #ecf0f1; -fx-border-color: #d1d5db; -fx-border-radius: 8; -fx-background-radius: 8;">
-                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Body:" />
-                    <Label fx:id="bodyLabel" wrapText="true" style="-fx-font-size: 16px; -fx-text-fill: #2c3e50;" text="Content" />
+                    <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Messaggio:" />
+                    <Label fx:id="bodyLabel" wrapText="true" style="-fx-font-size: 16px; -fx-text-fill: #2c3e50;" text="Messaggio:" />
                 </VBox>
             </ScrollPane>
         </VBox>
@@ -50,9 +50,9 @@
     <!-- Pulsanti in basso a destra -->
     <bottom>
         <HBox alignment="BOTTOM_RIGHT" spacing="20" style="-fx-padding: 15; -fx-background-color: #f4f6f9;">
-            <Button text="Reply" onAction="#handleReply" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 15; -fx-background-radius: 5;" />
-            <Button text="Reply All" onAction="#handleReplyAll" style="-fx-background-color: #1abc9c; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 15; -fx-background-radius: 5;" />
-            <Button text="Back to Inbox" onAction="#handleBackToInbox" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 15; -fx-background-radius: 5;" />
+            <Button text="Rispondi" onAction="#handleReply" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 15; -fx-background-radius: 5;" />
+            <Button text="Rispondi a tutti" onAction="#handleReplyAll" style="-fx-background-color: #1abc9c; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 15; -fx-background-radius: 5;" />
+            <Button text="Torna alla inbox" onAction="#handleBackToInbox" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 15; -fx-background-radius: 5;" />
         </HBox>
     </bottom>
 

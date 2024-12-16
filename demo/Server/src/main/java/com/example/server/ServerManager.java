@@ -26,7 +26,7 @@ public class ServerManager implements Runnable {
         }
         running = true;
         new Thread(this).start();  // Start the server thread
-        serverController.addLog("Server started.");
+        serverController.addLog("Server attivo.");
     }
 
     /** Ferma il server (socket) */
@@ -43,19 +43,19 @@ public class ServerManager implements Runnable {
         } catch (IOException e) {
             serverController.addLog("Error closing the server socket: " + e.getMessage());
         }
-        serverController.addLog("Server stopped.");
+        serverController.addLog("Server fermato.");
     }
 
     @Override
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket(Structures.PORT)) {
             this.serverSocket = serverSocket;
-            serverController.addLog("Server listening on port " + Structures.PORT);
+            serverController.addLog("Il server ascolta sulla porta: " + Structures.PORT);
 
             while (running) {
                 try {
                     Socket clientSocket = serverSocket.accept(); // Aspetta una connessione
-                    serverController.addLog("Connection received from: " + clientSocket.getInetAddress());
+                    serverController.addLog("Connessione ricevuta da: " + clientSocket.getInetAddress());
 
                     new Thread(() -> {
                         // Legge la richiesta del client e crea un ClientManager per gestirla
