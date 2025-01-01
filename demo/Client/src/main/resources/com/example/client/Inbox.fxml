@@ -28,18 +28,17 @@
 
     <center>
         <VBox spacing="10" style="-fx-padding: 10;">
-
             <TableView fx:id="emailTable" onMouseClicked="#handleEmailClick">
                 <columns>
-
                     <TableColumn fx:id="receiversColumn" text="Mittente" prefWidth="200" />
-
                     <TableColumn fx:id="subjectColumn" text="Titolo" />
-
                     <TableColumn fx:id="previewColumn" text="Messaggio" />
-
                 </columns>
             </TableView>
+
+            <Label fx:id="errorLabel" text="Errore: Operazione non riuscita"
+                   style="-fx-font-size: 14px; -fx-text-fill: red;"
+                   visible="false" />
         </VBox>
     </center>
 </BorderPane>

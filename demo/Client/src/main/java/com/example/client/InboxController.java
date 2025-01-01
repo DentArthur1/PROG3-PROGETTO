@@ -38,6 +38,8 @@ public class InboxController {
     public SessionBackup backup;
     private Timer pingTimer;
     private Timer emailUpdateTimer;
+    @FXML
+    public Label errorLabel;
 
     /**
      * @param email è l'email dell'utente per la quale si vuole visualizzare la casella di posta
@@ -296,8 +298,6 @@ public class InboxController {
                 selectedEmails.add(email);
             }
         }
-        // Elimino le mail localmente, dalla lista della inbox
-        emailList.removeAll(selectedEmails);
 
         //ottengo l'array di id da eliminare
         ArrayList<Integer> mail_ids = get_mail_ids(selectedEmails);
@@ -307,8 +307,12 @@ public class InboxController {
 
             Request<ArrayList<Integer>> mailsToDelete = new Request<>(Structures.DELETE, mail_ids, backup.getUserEmailBackup());
             output.writeObject(mailsToDelete);
+            // Elimino le mail localmente, solo se la richiesta è stata processata correttamente (nel caso writeObject non dia errore)
+            emailList.removeAll(selectedEmails);
+            hideError();
         } catch (Exception e) {
             System.out.println("Failed deleting mails.");
+            showError("Impossibile eliminare la mail, connessione fallita con il server.");
         }
 
         // Aggiorna il backup per riflettere la nuova lista di email
@@ -344,12 +348,12 @@ public class InboxController {
         set_user_email(backup.getUserEmailBackup());
     }
 
-    /**
-     * Ottiene l'ultimo ID della mail dalla lista delle email
-     * @param emailList lista delle email
-     * @return l'ultimo ID della mail
-     */
-    private int getLastMailId(ObservableList<Mail> emailList) {
-        return emailList.stream().mapToInt(Mail::getId).max().orElse(0);
+    public void showError(String message) {
+        errorLabel.setText(message);
+        errorLabel.setVisible(true);
+    }
+
+    public void hideError() {
+        errorLabel.setVisible(false);
     }
 }

@@ -17,13 +17,10 @@ public class ClientManager {
     private final ServerController serverController;
     private final ServerManager servermanager;
 
-    public ClientManager(ServerController serverController, ServerManager serverManager, ObjectOutputStream output, ObjectInputStream input, Socket clientSocket) {
+    public ClientManager(ServerController serverController, ServerManager serverManager) {
         this.messageService = new MessageService(serverManager);
-        this.output = output;
-        this.input = input;
         this.serverController = serverController;
         this.servermanager = serverManager;
-        this.clientSocket = clientSocket;
     }
 
 
@@ -32,8 +29,16 @@ public class ClientManager {
         this.clientSocket = socket;
     }
 
+    public void set_input(ObjectInputStream input) {
+        this.input = input;
+    }
+
+    public void set_output(ObjectOutputStream output) {
+        this.output = output;
+    }
+
     /** Metodo per gestire le richieste del client */
-    public synchronized void handleClient(Request<?> request) {
+    public void handleClient(Request<?> request) {
         try {
             // Switch-case per gestire le richieste
             switch (request.getRequestCode()) {
@@ -72,7 +77,7 @@ public class ClientManager {
     }
 
     /** Metodo per gestire il ping */
-    private synchronized void handlePing(Request<String> request) {
+    private void handlePing(Request<String> request) {
         try {
             Request<String> response = new Request<>(Structures.PING, "pong", "SERVER");
             output.writeObject(response);
@@ -125,7 +130,7 @@ public class ClientManager {
     }
 
     /** Metodo per gestire la verifica del login */
-    private boolean handleLoginCheck(Request<String> request, ObjectOutputStream output) throws IOException {
+    private synchronized boolean handleLoginCheck(Request<String> request, ObjectOutputStream output) throws IOException {
         String userEmail = request.getPayload();
         boolean userExists = Structures.checkUserExists(userEmail);
         int responseCode;
@@ -194,7 +199,7 @@ public class ClientManager {
     }
 
     /** Metodo per chiudere la connessione */
-    private synchronized void closeConnection() {
+    private void closeConnection() {
         try {
             if (input != null) input.close();
             if (output != null) output.close();

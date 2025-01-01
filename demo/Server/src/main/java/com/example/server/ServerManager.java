@@ -13,9 +13,12 @@ public class ServerManager implements Runnable {
     private volatile boolean running = false;
     private ServerSocket serverSocket;
     private final ServerController serverController;
+    private final ClientManager clientManager;
 
     public ServerManager(ServerController serverController) {
         this.serverController = serverController;
+        // crea un nuovo client manager (FUORI DAL LOOP, IN MODO DA CREARE SOLO 1 CLASSE CLIENTMANAGER E ABILITARE LA SINCRONIZZAZIONE PER I METODI CHE AGISCONO SUI FILE)
+        clientManager = new ClientManager(serverController, this);
     }
 
     /** Avvia il server (thread) */
@@ -57,25 +60,22 @@ public class ServerManager implements Runnable {
                     Socket clientSocket = serverSocket.accept(); // Aspetta una connessione
                     serverController.addLog("Connessione ricevuta da: " + clientSocket.getInetAddress());
 
-                    new Thread(() -> {
-                        // Legge la richiesta del client e crea un ClientManager per gestirla
-                        try {
-                            ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
-                            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-                            Request<?> generic_request = (Request<?>) input.readObject();
+                    // Legge la richiesta del client e crea un ClientManager per gestirla
+                    try {
+                        //In base alla connessione ricevuta viene riconfigurata la stessa classe ClientManager
+                        //Tutti i client interagiscono con la stessa classe ClientManager
+                        ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
+                        ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+                        clientManager.set_input(input);
+                        clientManager.set_output(output);
+                        clientManager.set_socket(clientSocket);
+                        Request<?> generic_request = (Request<?>) input.readObject();
+                        //chiamo handle_client per il client specifico
+                        clientManager.handleClient(generic_request);
 
-                            // crea un nuovo client manager
-                            ClientManager clientManager = new ClientManager(serverController, this, output, input, clientSocket);
-                            clientManager.set_socket(clientSocket);
-
-                            //chiamo handle_client
-                            clientManager.handleClient(generic_request);
-
-                        } catch (Exception e) {
-                            serverController.addLog("Authentication process failed");
-                        }
-                    }).start();
-
+                    } catch (Exception e) {
+                        serverController.addLog("Authentication process failed");
+                    }
 
                 } catch (IOException e) {
                     if (running) {
@@ -90,7 +90,7 @@ public class ServerManager implements Runnable {
         }
     }
 
-    /** Pulisce il server socket */
+    /** Chiude il server socket */
     private void cleanup() {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
