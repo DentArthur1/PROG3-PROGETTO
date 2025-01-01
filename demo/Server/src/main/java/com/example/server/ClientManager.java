@@ -16,55 +16,50 @@ public class ClientManager {
     private ObjectInputStream input;
     private final ServerController serverController;
     private final ServerManager servermanager;
+    private final Socket client_socket;
 
-    public ClientManager(ServerController serverController, ServerManager serverManager) {
+    private static final Object lock = new Object();  //condivisa fra tutte le istanze di ClientManager(Ne viene creata 1 per tutte le classi, per questo può essere usata come lock)
+
+    public ClientManager(ServerController serverController, ServerManager serverManager, ObjectOutputStream output, ObjectInputStream input, Socket client_socket) {
         this.messageService = new MessageService(serverManager);
         this.serverController = serverController;
         this.servermanager = serverManager;
-    }
-
-
-    /** Getter e setter per il socket del client (per la chiusura della connessione) */
-    public void set_socket(Socket socket) {
-        this.clientSocket = socket;
-    }
-
-    public void set_input(ObjectInputStream input) {
-        this.input = input;
-    }
-
-    public void set_output(ObjectOutputStream output) {
         this.output = output;
+        this.input = input;
+        this.client_socket = client_socket;
     }
+
 
     /** Metodo per gestire le richieste del client */
     public void handleClient(Request<?> request) {
-        try {
-            // Switch-case per gestire le richieste
-            switch (request.getRequestCode()) {
-                case Structures.UPDATE_MAILS -> handleUpdateMails((Request<List<Integer>>) request);
-                case Structures.PING -> handlePing((Request<String>) request);
-                case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
-                case Structures.DEST_CHECK -> handleDestCheck((Request<String>) request);
-                case Structures.LOGOUT -> handleLogout();
-                case Structures.DELETE -> handleDelete((Request<ArrayList<Integer>>) request);
-                case Structures.LOGIN_CHECK -> handleLoginCheck((Request<String>) request, output);
-                default -> {
-                    serverController.addLog("Codice richiesta non riconosciuto: " + request.getRequestCode());
-                    throw new Exception("Codice richiesta sconosciuto");
+        synchronized (lock) {
+            try {
+                // Switch-case per gestire le richieste
+                switch (request.getRequestCode()) {
+                    case Structures.UPDATE_MAILS -> handleUpdateMails((Request<List<Integer>>) request);
+                    case Structures.PING -> handlePing((Request<String>) request);
+                    case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
+                    case Structures.DEST_CHECK -> handleDestCheck((Request<String>) request);
+                    case Structures.LOGOUT -> handleLogout();
+                    case Structures.DELETE -> handleDelete((Request<ArrayList<Integer>>) request);
+                    case Structures.LOGIN_CHECK -> handleLoginCheck((Request<String>) request, output);
+                    default -> {
+                        serverController.addLog("Codice richiesta non riconosciuto: " + request.getRequestCode());
+                        throw new Exception("Codice richiesta sconosciuto");
+                    }
                 }
-            }
 
-        } catch (Exception e) {
-            serverController.addLog("Errore nella gestione del client: ");
-            e.printStackTrace();
-        } finally {
-            closeConnection();
+            } catch (Exception e) {
+                serverController.addLog("Errore nella gestione del client: ");
+                e.printStackTrace();
+            } finally {
+                closeConnection();
+            }
         }
     }
 
     /** Metodi per gestire le richieste del client */
-    private synchronized void handleUpdateMails(Request<List<Integer>> request) {
+    private void handleUpdateMails(Request<List<Integer>> request) {
         try {
             List<Integer> existingIds = request.getPayload();
             ArrayList<Mail> newMails = messageService.getMessagesByReceiver(request.getRequestId(), existingIds);
@@ -88,7 +83,7 @@ public class ClientManager {
     }
 
     /** Metodo per gestire l'invio di una mail */
-    private synchronized void handleSendMail(Request<Mail> request) {
+    private void handleSendMail(Request<Mail> request) {
         try {
             Mail newMail = request.getPayload();
             serverController.addLog("Nuova mail ricevuta da: " + newMail.getSender());
@@ -105,7 +100,7 @@ public class ClientManager {
     }
 
     /** Metodo per gestire la verifica del destinatario */
-    private synchronized void handleDestCheck(Request<String> request) {
+    private void handleDestCheck(Request<String> request) {
         try {
             String destEmail = request.getPayload();
             boolean destExists = Structures.checkUserExists(destEmail);
@@ -119,7 +114,7 @@ public class ClientManager {
     }
 
     /** Metodo per gestire il logout */
-    private synchronized void handleLogout() {
+    private void handleLogout() {
         serverController.addLog("Logout request received, resetting file pointer.");
         try {
             if (output != null) output.close();
@@ -130,7 +125,7 @@ public class ClientManager {
     }
 
     /** Metodo per gestire la verifica del login */
-    private synchronized boolean handleLoginCheck(Request<String> request, ObjectOutputStream output) throws IOException {
+    private boolean handleLoginCheck(Request<String> request, ObjectOutputStream output) throws IOException {
         String userEmail = request.getPayload();
         boolean userExists = Structures.checkUserExists(userEmail);
         int responseCode;
@@ -151,7 +146,7 @@ public class ClientManager {
     }
 
     /** Metodo per gestire la cancellazione delle mail */
-    private synchronized void handleDelete(Request<ArrayList<Integer>> request) {
+    private void handleDelete(Request<ArrayList<Integer>> request) {
 
         String filePath = Structures.FILE_PATH + request.getRequestId().split("@")[0] + ".txt";
         ArrayList<Integer> mailIdsToDelete = request.getPayload();
