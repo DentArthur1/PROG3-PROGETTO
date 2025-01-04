@@ -1,8 +1,12 @@
 package com.example.shared;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -140,8 +144,23 @@ public class Mail implements Serializable {
      *
      * @return Rappresentazione testuale della mail.
      */
-    @Override
+    /*@Override
     public String toString() {
         return sender + "§" + title + "§" + content + "§" + String.join(",", receivers) + "§" + date + "§" + id;
+    }*/
+
+    public static Mail fromJson(String json) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(json, Mail.class);
+    }
+
+    public String toJson() {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

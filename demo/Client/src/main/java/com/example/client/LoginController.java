@@ -9,14 +9,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 
 public class LoginController {
-    /** Classe controllore per gestire il processo di login, campo di testo dell'email,
-     * etichetta per la visualizzazione di errori di login ed email dell'utente  */
     @FXML
     private TextField emailField;
     @FXML
@@ -24,42 +20,36 @@ public class LoginController {
 
     public String user_mail;
 
-    /** Metodo che gestisce l'input dell'utente e agisce di conseguenza
-     * Questo metodo viene chiamato quando l'utente preme il pulsante di login.
-     * Verifica l'input dell'utente e tenta di autenticare l'utente attraverso
-     * una connessione al server.
-     */
     public void handleLogin() {
         user_mail = emailField.getText().trim();
 
-        // Controlla se l'email inserita è in un formato valido.
         if (!Structures.isValidEmail(user_mail)) {
             errorLabel.setText("Invalid email format. Please try again.");
         } else {
-            // Tenta di connettersi al server per verificare l'email.
             try (Socket socket = new Socket("localhost", Structures.PORT);
-                 ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
-                 ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
+                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
-                // Crea una richiesta di verifica del login con l'email dell'utente.
                 Request<String> request = new Request<>(Structures.LOGIN_CHECK, user_mail, user_mail);
-                output.writeObject(request);
-                output.flush();
+                writer.write(request.toJson());
+                writer.newLine();
+                writer.flush();
 
-                // Riceve la risposta dal server
-                Request<?> response = (Request<?>) input.readObject();
-                // Controlla il codice di risposta ricevuto dal server.
-                if (response.getRequestCode() == Structures.LOGIN_OK) {
-                    // Se l'utente è stato trovato, cambia la scena alla casella di posta.
-                    InboxController inbox_controller = Structures.change_scene((Stage) errorLabel.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Inbox.fxml")));
-                    SessionBackup backup = new SessionBackup(user_mail);
-                    inbox_controller.access_inbox(backup);
+                String responseJson = reader.readLine();
+                if (responseJson != null && !responseJson.isEmpty()) {
+                    Request<?> response = Request.fromJson(responseJson);
+
+                    if (response.getRequestCode() == Structures.LOGIN_OK) {
+                        InboxController inbox_controller = Structures.change_scene((Stage) errorLabel.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Inbox.fxml")));
+                        SessionBackup backup = new SessionBackup(user_mail);
+                        inbox_controller.access_inbox(backup);
+                    } else {
+                        errorLabel.setText("Login failed. User not found.");
+                    }
                 } else {
-                    // Se l'utente non è stato trovato, visualizza un messaggio di errore
-                    errorLabel.setText("Login failed. User not found.");
+                    errorLabel.setText("Error: Received empty response from server.");
                 }
-            } catch (IOException | ClassNotFoundException e) {
-                // gestisce gli errori di connessione al server
+            } catch (IOException e) {
                 e.printStackTrace();
                 errorLabel.setText("Error connecting to server.");
             }

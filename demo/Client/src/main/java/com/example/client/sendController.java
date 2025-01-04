@@ -11,9 +11,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -126,42 +124,43 @@ public class sendController {
     @FXML
     protected void sendEmail() {
         String oggetto = subjectField.getText().trim();
-        // Elimino eventuali caratteri che romperebbero la formattazione del file
         String corpo = bodyArea.getText().trim().replace("\n", "").replace("\r", "");
-
-        String[] destinatari = receiversList.getText().trim().split("\n"); // Legge tutti i destinatari
-        System.out.println(Arrays.toString(destinatari));
+        String[] destinatari = receiversList.getText().trim().split("\n");
         LocalDateTime date = LocalDateTime.now();
         Mail new_mail = new Mail(backup.getUserEmailBackup(), oggetto, corpo, destinatari, date, Structures.generateUniqueInteger(date, backup.getUserEmailBackup()));
 
-        /** Controllo della correttezza degli input */
         if (destinatari.length == 0 || oggetto.isEmpty() || corpo.isEmpty()) {
             errorLabel.setText("Errore: Tutti i campi devono essere compilati.");
-            successLabel.setText(""); // Pulisci eventuale messaggio di successo
+            successLabel.setText("");
             return;
         }
 
-        /** Scrive la mail sul socket */
         try (Socket clientSocket = new Socket("localhost", Structures.PORT);
-             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream())) {
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+             BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
 
-            // Costruisco la richiesta
-            Request<Mail> new_mail_to_send = new Request<>(Structures.SEND_MAIL, new_mail, backup.getUserEmailBackup());
-            output.writeObject(new_mail_to_send);
+            String mailJson = new_mail.toJson(); // Convert Mail object to JSON string
+            Request<String> new_mail_to_send = new Request<>(Structures.SEND_MAIL, mailJson, backup.getUserEmailBackup());
+            writer.write(new_mail_to_send.toJson());
+            writer.newLine();
+            writer.flush();
 
-            // Se l'email è inviata con successo
-            successLabel.setText("Email inviata con successo!");
-            errorLabel.setText(""); // Pulisci eventuale messaggio di errore
+            String response = reader.readLine();
+            if (response.equals("SUCCESS")) {
+                successLabel.setText("Email inviata con successo!");
+                errorLabel.setText("");
+            } else {
+                errorLabel.setText("Errore durante l'invio dell'email.");
+                successLabel.setText("");
+            }
 
-            // Pulisce i campi
             toField.clear();
             receiversList.clear();
             subjectField.clear();
             bodyArea.clear();
         } catch (IOException e) {
-            // Gestione dell'errore durante l'invio
             errorLabel.setText("Errore durante l'invio dell'email: " + e.getMessage());
-            successLabel.setText(""); // Cancella eventuali successi
+            successLabel.setText("");
         }
     }
 

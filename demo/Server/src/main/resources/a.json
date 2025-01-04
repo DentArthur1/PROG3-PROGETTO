@@ -1,0 +1,10 @@
+[
+  {
+    "sender": "example@domain.com",
+    "title": "Example Title",
+    "content": "Example content",
+    "receivers": ["receiver@domain.com"],
+    "date": "2024-12-15T12:11:07.373453963",
+    "id": 123456789
+  }
+]

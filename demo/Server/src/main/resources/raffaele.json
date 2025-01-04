@@ -1,0 +1,26 @@
+[
+  {
+    "sender": "samuele@sigmamail.com",
+    "title": "ciao a voi",
+    "content": "ciao a voi",
+    "receivers": ["daniele@sigmamail.com", "raffaele@sigmamail.com"],
+    "date": "2024-12-15T12:07:34.675618374",
+    "id": -306371951
+  },
+  {
+    "sender": "daniele@sigmamail.com",
+    "title": "44",
+    "content": "44",
+    "receivers": ["raffaele@sigmamail.com"],
+    "date": "2025-01-01T19:49:46.626453718",
+    "id": 210079501
+  },
+  {
+    "sender": "samuele@sigmamail.com",
+    "title": "34",
+    "content": "34",
+    "receivers": ["raffaele@sigmamail.com"],
+    "date": "2025-01-01T20:44:26.432900241",
+    "id": -715824279
+  }
+]

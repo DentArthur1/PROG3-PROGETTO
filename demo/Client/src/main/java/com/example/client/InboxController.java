@@ -13,6 +13,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.stage.Stage;
 import javafx.application.Platform;
 
+
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
@@ -194,14 +195,17 @@ public class InboxController {
      *  @return true se il server è attivo, false altrimenti
      */
     private boolean isServerActive() {
-        try {
-            Socket clientSocket = new Socket("localhost", Structures.PORT);
-            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-            ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
+        try (Socket clientSocket = new Socket("localhost", Structures.PORT);
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+             BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
 
             Request<String> ping_request = new Request<>(Structures.PING, "ping", backup.getUserEmailBackup());
-            output.writeObject(ping_request);
-            Request<?> pong_request = (Request<?>) input.readObject();
+            writer.write(ping_request.toJson());
+            writer.newLine();
+            writer.flush();
+
+            String responseJson = reader.readLine();
+            Request<?> pong_request = Request.fromJson(responseJson);
 
             return pong_request.getRequestCode() == Structures.PING;
         } catch (Exception e) {
@@ -218,27 +222,30 @@ public class InboxController {
         ObservableList<Mail> parsed_mails = FXCollections.observableArrayList();
         List<Integer> existingIds = new ArrayList<>();
 
-        if (emailList != null){ //Dopo la prima run
+        if (emailList != null) {
             for (Mail mail : emailList) {
                 existingIds.add(mail.getId());
             }
         }
-        try {
-            Socket clientSocket = new Socket("localhost", Structures.PORT);
-            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-            ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
+        try (Socket clientSocket = new Socket("localhost", Structures.PORT);
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+             BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
 
             Request<List<Integer>> mail_update_request = new Request<>(Structures.UPDATE_MAILS, existingIds, backup.getUserEmailBackup());
-            output.writeObject(mail_update_request);
+            writer.write(mail_update_request.toJson());
+            writer.newLine();
+            writer.flush();
 
-            Request<?> new_mails = (Request<?>) input.readObject();
+            String responseJson = reader.readLine();
+            Request<?> new_mails = Request.fromJson(responseJson);
 
             if (new_mails.getRequestCode() == Structures.UPDATE_MAILS) {
-                ArrayList<Mail> mails = (ArrayList<Mail>) new_mails.getPayload();
-                for (Mail mail : mails) {
+                ArrayList<String> mailsJson = (ArrayList<String>) new_mails.getPayload();
+                for (String mailJson : mailsJson) {
+                    Mail mail = Mail.fromJson(mailJson);
                     mail.recover_from_serialization();
+                    parsed_mails.add(mail);
                 }
-                parsed_mails.addAll(mails);
             }
         } catch (Exception e) {
             System.out.println("Non è stato possibile recuperare le email. Riprova più tardi.");
@@ -269,11 +276,13 @@ public class InboxController {
         stop_email_update();
         stop_ping_timer();
         Structures.change_scene((Stage) emailTable.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Login.fxml")));
-        try {
-            Socket clientSocket = new Socket("localhost", Structures.PORT);
-            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+        try (Socket clientSocket = new Socket("localhost", Structures.PORT);
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))) {
+
             Request<String> logout_request = new Request<>(Structures.LOGOUT, "", backup.getUserEmailBackup());
-            output.writeObject(logout_request);
+            writer.write(logout_request.toJson());
+            writer.newLine();
+            writer.flush();
         } catch (Exception e) {
             System.out.println("Failed requesting logout.");
         }
@@ -291,7 +300,6 @@ public class InboxController {
     /** Rimuove le email selezionate */
     @FXML
     protected void handleDelete() {
-        // Ottengo le mail selezionate
         ArrayList<Mail> selectedEmails = new ArrayList<>();
         for (Mail email : emailList) {
             if (email.isSelected()) {
@@ -299,15 +307,15 @@ public class InboxController {
             }
         }
 
-        //ottengo l'array di id da eliminare
         ArrayList<Integer> mail_ids = get_mail_ids(selectedEmails);
-        // Invio la richiesta di eliminazione al server
         try (Socket clientSocket = new Socket("localhost", Structures.PORT);
-             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream())) {
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))) {
 
             Request<ArrayList<Integer>> mailsToDelete = new Request<>(Structures.DELETE, mail_ids, backup.getUserEmailBackup());
-            output.writeObject(mailsToDelete);
-            // Elimino le mail localmente, solo se la richiesta è stata processata correttamente (nel caso writeObject non dia errore)
+            writer.write(mailsToDelete.toJson());
+            writer.newLine();
+            writer.flush();
+
             emailList.removeAll(selectedEmails);
             hideError();
         } catch (Exception e) {
@@ -315,11 +323,8 @@ public class InboxController {
             showError("Impossibile eliminare la mail, connessione fallita con il server.");
         }
 
-        // Aggiorna il backup per riflettere la nuova lista di email
         backup.setEmailBackup(FXCollections.observableArrayList(emailList));
-
-        // Aggiorna la vista della lista delle email
-        emailTable.refresh(); // Aggiorna la vista della TableView
+        emailTable.refresh();
     }
 
     /**
