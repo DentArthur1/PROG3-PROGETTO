@@ -1,13 +1,11 @@
 package com.example.server;
 
-import com.example.shared.Request;
 import com.example.shared.Structures;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ServerManager implements Runnable {
     private volatile boolean running = false;
@@ -60,10 +58,10 @@ public class ServerManager implements Runnable {
 
                     new Thread(() -> {
                         try {
-                            ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
-                            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-                            ClientManager clientManager = new ClientManager(serverController, this, output, input, clientSocket);
-                            Request<?> generic_request = (Request<?>) input.readObject();
+                            ClientManager clientManager = new ClientManager(serverController, this, clientSocket);
+                            //Parsing della richiesta in un JSONOBJECT
+                            JSONObject generic_request = Structures.wait_for_response(clientSocket);
+                            //Passaggio a clientmanager
                             clientManager.handleClient(generic_request);
                         } catch (Exception e) {
                             serverController.addLog("Authentication process failed");

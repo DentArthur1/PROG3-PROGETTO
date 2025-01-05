@@ -1,7 +1,5 @@
 package com.example.client;
 
-import com.example.shared.Mail;
-import com.example.shared.Request;
 import com.example.shared.SessionBackup;
 import com.example.shared.Structures;
 import javafx.fxml.FXML;
@@ -10,12 +8,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 public class sendController {
@@ -79,23 +78,20 @@ public class sendController {
         for (String destinatario : destinatari) {
             /** Verifica se il campo del destinatario non è vuoto e se l'indirizzo è valido */
             if (!destinatario.isEmpty() && Structures.isValidEmail(destinatario)) {
-                try (Socket socket = new Socket("localhost", Structures.PORT);
-                     ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
-                     ObjectInputStream input = new ObjectInputStream(socket.getInputStream())) {
+                try (Socket socket = new Socket("localhost", Structures.PORT)){
 
                     // Crea una richiesta per verificare l'esistenza del destinatario
-                    Request<String> request = new Request<>(Structures.DEST_CHECK, destinatario,backup.getUserEmailBackup());
-                    output.writeObject(request);
-                    output.flush();
-
+                    String dest_check_request = Structures.build_request(Structures.DEST_CHECK, destinatario, backup.getUserEmailBackup());
+                    // Invia la richiesta
+                    Structures.sendRequest(socket, dest_check_request);
                     // Ricevi la risposta dal server
-                    Request<?> response = (Request<?>) input.readObject();
-                    if (response.getRequestCode() == Structures.DEST_OK) {
+                    JSONObject dest_check_response = Structures.wait_for_response(socket);
+                    if (dest_check_response.getInt(Structures.REQUEST_CODE_KEY) == Structures.DEST_OK) {
                         // Aggiungi il destinatario alla lista visibile
                         receiversList.appendText(destinatario + "\n");
                         // Cancella il campo per il prossimo inserimento
                         toField.clear();
-                    } else if (response.getRequestCode() == Structures.DEST_ERROR) {
+                    } else if (dest_check_response.getInt(Structures.REQUEST_CODE_KEY) == Structures.DEST_ERROR) {
                         errorLabel.setText("Errore: Indirizzo email: " + destinatario + " non trovato.");
                         successLabel.setText(""); // Cancella eventuali successi precedenti
                     } else {
@@ -103,7 +99,7 @@ public class sendController {
                         successLabel.setText(""); // Cancella eventuali successi precedenti
                         break;
                     }
-                } catch (IOException | ClassNotFoundException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     errorLabel.setText("Error connecting to server.");
                     break;
@@ -132,7 +128,6 @@ public class sendController {
         String[] destinatari = receiversList.getText().trim().split("\n"); // Legge tutti i destinatari
         System.out.println(Arrays.toString(destinatari));
         LocalDateTime date = LocalDateTime.now();
-        Mail new_mail = new Mail(backup.getUserEmailBackup(), oggetto, corpo, destinatari, date, Structures.generateUniqueInteger(date, backup.getUserEmailBackup()));
 
         /** Controllo della correttezza degli input */
         if (destinatari.length == 0 || oggetto.isEmpty() || corpo.isEmpty()) {
@@ -142,25 +137,36 @@ public class sendController {
         }
 
         /** Scrive la mail sul socket */
-        try (Socket clientSocket = new Socket("localhost", Structures.PORT);
-             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream())) {
+        try (Socket clientSocket = new Socket("localhost", Structures.PORT)) {
 
             // Costruisco la richiesta
-            Request<Mail> new_mail_to_send = new Request<>(Structures.SEND_MAIL, new_mail, backup.getUserEmailBackup());
-            output.writeObject(new_mail_to_send);
+            String new_mail_to_send = Structures.build_request(Structures.SEND_MAIL,
+                    Structures.build_mail(backup.getUserEmailBackup(),
+                            oggetto,
+                            corpo,
+                            destinatari,
+                            date,
+                            Structures.generateUniqueInteger(date, backup.getUserEmailBackup()
+                            )), backup.getUserEmailBackup());
 
-            // Se l'email è inviata con successo
-            successLabel.setText("Email inviata con successo!");
-            errorLabel.setText(""); // Pulisci eventuale messaggio di errore
+            //Invio la richiesta
+            if(Structures.sendRequest(clientSocket,new_mail_to_send)){
+                // Se l'email è inviata con successo
+                successLabel.setText("Email inviata con successo!");
+                errorLabel.setText(""); // Pulisci eventuale messaggio di errore
 
-            // Pulisce i campi
-            toField.clear();
-            receiversList.clear();
-            subjectField.clear();
-            bodyArea.clear();
+                // Pulisce i campi
+                toField.clear();
+                receiversList.clear();
+                subjectField.clear();
+                bodyArea.clear();
+            } else {
+                errorLabel.setText("Errore durante l'invio dell'email (sendRequest ha ritornato falso)");
+            }
+
         } catch (IOException e) {
             // Gestione dell'errore durante l'invio
-            errorLabel.setText("Errore durante l'invio dell'email: " + e.getMessage());
+            errorLabel.setText("Errore durante l'apertura del socket o la costruzione della richiesta per l'invio di una mail" + e.getMessage());
             successLabel.setText(""); // Cancella eventuali successi
         }
     }
@@ -171,4 +177,7 @@ public class sendController {
         InboxController inbox_controller = Structures.change_scene((Stage) successLabel.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Inbox.fxml")));
         inbox_controller.access_inbox(backup);
     }
+
+
+
 }

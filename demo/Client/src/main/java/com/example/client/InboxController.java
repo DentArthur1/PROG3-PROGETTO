@@ -3,7 +3,6 @@ package com.example.client;
 import com.example.shared.Mail;
 import com.example.shared.SessionBackup;
 import com.example.shared.Structures;
-import com.example.shared.Request;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -13,10 +12,12 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.stage.Stage;
 import javafx.application.Platform;
 
-import java.io.*;
 import java.net.Socket;
 import java.util.*;
 import java.time.LocalDateTime;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class InboxController {
     /**
@@ -196,14 +197,10 @@ public class InboxController {
     private boolean isServerActive() {
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
-            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-            ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
-
-            Request<String> ping_request = new Request<>(Structures.PING, "ping", backup.getUserEmailBackup());
-            output.writeObject(ping_request);
-            Request<?> pong_request = (Request<?>) input.readObject();
-
-            return pong_request.getRequestCode() == Structures.PING;
+            String ping_request = Structures.build_request(Structures.PING, "PING", backup.getUserEmailBackup());
+            Structures.sendRequest(clientSocket, ping_request);
+            JSONObject pong_response = Structures.wait_for_response(clientSocket);
+            return pong_response.getInt(Structures.REQUEST_CODE_KEY) == Structures.PING;
         } catch (Exception e) {
             return false;
         }
@@ -215,35 +212,64 @@ public class InboxController {
      */
 
     private ObservableList<Mail> get_new_emails() {
-        ObservableList<Mail> parsed_mails = FXCollections.observableArrayList();
-        List<Integer> existingIds = new ArrayList<>();
 
+        List<Integer> existingIds = new ArrayList<>();
         if (emailList != null){ //Dopo la prima run
             for (Mail mail : emailList) {
                 existingIds.add(mail.getId());
             }
         }
+
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
-            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-            ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
 
-            Request<List<Integer>> mail_update_request = new Request<>(Structures.UPDATE_MAILS, existingIds, backup.getUserEmailBackup());
-            output.writeObject(mail_update_request);
+            String mails_request = Structures.build_request(Structures.UPDATE_MAILS, existingIds.stream().mapToInt(Integer::intValue).toArray(), backup.getUserEmailBackup());
+            Structures.sendRequest(clientSocket, mails_request);
+            JSONObject mails_response = Structures.wait_for_response(clientSocket);
 
-            Request<?> new_mails = (Request<?>) input.readObject();
-
-            if (new_mails.getRequestCode() == Structures.UPDATE_MAILS) {
-                ArrayList<Mail> mails = (ArrayList<Mail>) new_mails.getPayload();
-                for (Mail mail : mails) {
-                    mail.recover_from_serialization();
-                }
-                parsed_mails.addAll(mails);
-            }
+            return parse_mails(mails_response);
         } catch (Exception e) {
-            System.out.println("Non è stato possibile recuperare le email. Riprova più tardi.");
+            System.out.println("Non è stato possibile recuperare le email. A causa di questo errore --->" + e.getMessage());
+            return null;
+        }
+
+    }
+
+    /**
+     * Fa il parsing dell'array json delle mail ricevuto*/
+    private ObservableList<Mail> parse_mails(JSONObject mails_response) {
+        ObservableList<Mail> parsed_mails = FXCollections.observableArrayList();
+        // Accesso al payload (array di messaggi)
+        String payloadArray_string = mails_response.getString(Structures.REQUEST_PAYLOAD_KEY);
+        JSONArray payload_array= new JSONArray(payloadArray_string);
+        //Per ogni mail nell'array ne effettua il parsing e costruisce la classe mail
+        for (int i = 0; i < payload_array.length(); i++) {
+            JSONObject message = payload_array.getJSONObject(i);
+            // Accesso ai campi del singolo messaggio
+            String sender = message.getString(Structures.MAIL_SENDER_KEY);
+            String title = message.getString(Structures.MAIL_TITLE_KEY);
+            String content = message.getString(Structures.MAIL_CONTENT_KEY);
+            String[] receivers = parse_receivers(message.getJSONArray(Structures.MAIL_RECEIVERS_KEY));
+            LocalDateTime date = LocalDateTime.parse(message.getString(Structures.MAIL_DATE_KEY));
+            int id = message.getInt(Structures.MAIL_ID_KEY);
+            // Costruisco la mail e la aggiungo alla lista
+            Mail new_parsed_mail = new Mail(sender, title, content, receivers, date, id);
+            parsed_mails.add(new_parsed_mail);
         }
         return parsed_mails;
+    }
+
+    /**
+     * Fa il parsing dei receivers ricevuti sotto forma di JSONArray*/
+    private String[]  parse_receivers(JSONArray receivers){
+        // Crea un array di stringhe con la dimensione dell'JSONArray
+        String[] receiversArray = new String[receivers.length()];
+        // Itera attraverso l'array JSON e copia ogni elemento nel nostro array di stringhe
+        for (int i = 0; i < receivers.length(); i++) {
+            receiversArray[i] = receivers.getString(i);
+        }
+        // Ritorna l'array di stringhe
+        return receiversArray;
     }
 
     /** Viene gestito il click su una mail rendendo visibili i dettagli */
@@ -271,9 +297,8 @@ public class InboxController {
         Structures.change_scene((Stage) emailTable.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Login.fxml")));
         try {
             Socket clientSocket = new Socket("localhost", Structures.PORT);
-            ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
-            Request<String> logout_request = new Request<>(Structures.LOGOUT, "", backup.getUserEmailBackup());
-            output.writeObject(logout_request);
+            String logout_request = Structures.build_request(Structures.LOGOUT,"", backup.getUserEmailBackup());
+            Structures.sendRequest(clientSocket, logout_request);
         } catch (Exception e) {
             System.out.println("Failed requesting logout.");
         }
@@ -298,26 +323,20 @@ public class InboxController {
                 selectedEmails.add(email);
             }
         }
-
         //ottengo l'array di id da eliminare
         ArrayList<Integer> mail_ids = get_mail_ids(selectedEmails);
         // Invio la richiesta di eliminazione al server
-        try (Socket clientSocket = new Socket("localhost", Structures.PORT);
-             ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream())) {
-
-            Request<ArrayList<Integer>> mailsToDelete = new Request<>(Structures.DELETE, mail_ids, backup.getUserEmailBackup());
-            output.writeObject(mailsToDelete);
-            // Elimino le mail localmente, solo se la richiesta è stata processata correttamente (nel caso writeObject non dia errore)
+        try
+          {
+            Socket clientSocket = new Socket("localhost", Structures.PORT);
+            String delete_request = Structures.build_request(Structures.DELETE, mail_ids, backup.getUserEmailBackup());
+            Structures.sendRequest(clientSocket, delete_request);
             emailList.removeAll(selectedEmails);
-            hideError();
         } catch (Exception e) {
             System.out.println("Failed deleting mails.");
-            showError("Impossibile eliminare la mail, connessione fallita con il server.");
         }
-
         // Aggiorna il backup per riflettere la nuova lista di email
         backup.setEmailBackup(FXCollections.observableArrayList(emailList));
-
         // Aggiorna la vista della lista delle email
         emailTable.refresh(); // Aggiorna la vista della TableView
     }
@@ -334,7 +353,6 @@ public class InboxController {
         }
         return mail_ids;
     }
-
 
     /**
      * Ripristina la inbox da un backup
@@ -356,4 +374,6 @@ public class InboxController {
     public void hideError() {
         errorLabel.setVisible(false);
     }
+
+
 }

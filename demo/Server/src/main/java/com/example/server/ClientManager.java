@@ -3,48 +3,47 @@ package com.example.server;
 
 import com.example.shared.Mail;
 import com.example.shared.Structures;
-import com.example.shared.Request;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class ClientManager {
 
     private Socket clientSocket;
     private final MessageService messageService;
-    private ObjectOutputStream output;
-    private ObjectInputStream input;
     private final ServerController serverController;
     private final ServerManager servermanager;
-    private final Socket client_socket;
 
     private static final Object lock = new Object();  //condivisa fra tutte le istanze di ClientManager(Ne viene creata 1 per tutte le classi, per questo può essere usata come lock)
 
-    public ClientManager(ServerController serverController, ServerManager serverManager, ObjectOutputStream output, ObjectInputStream input, Socket client_socket) {
+    public ClientManager(ServerController serverController, ServerManager serverManager,Socket client_socket) {
         this.messageService = new MessageService(serverManager);
         this.serverController = serverController;
         this.servermanager = serverManager;
-        this.output = output;
-        this.input = input;
-        this.client_socket = client_socket;
+        this.clientSocket = client_socket;
     }
 
 
     /** Metodo per gestire le richieste del client */
-    public void handleClient(Request<?> request) {
+    public void handleClient(JSONObject request) {
         synchronized (lock) {
             try {
                 // Switch-case per gestire le richieste
-                switch (request.getRequestCode()) {
-                    case Structures.UPDATE_MAILS -> handleUpdateMails((Request<List<Integer>>) request);
-                    case Structures.PING -> handlePing((Request<String>) request);
-                    case Structures.SEND_MAIL -> handleSendMail((Request<Mail>) request);
-                    case Structures.DEST_CHECK -> handleDestCheck((Request<String>) request);
-                    case Structures.LOGOUT -> handleLogout();
-                    case Structures.DELETE -> handleDelete((Request<ArrayList<Integer>>) request);
-                    case Structures.LOGIN_CHECK -> handleLoginCheck((Request<String>) request, output);
+                switch (request.getInt(Structures.REQUEST_CODE_KEY)) {
+                    case Structures.UPDATE_MAILS -> handleUpdateMails(request);
+                    case Structures.PING -> handlePing(request);
+                    case Structures.SEND_MAIL -> handleSendMail(request);
+                    case Structures.DEST_CHECK -> handleDestCheck(request);
+                    case Structures.LOGOUT -> handleLogout(request);
+                    case Structures.DELETE -> handleDelete(request);
+                    case Structures.LOGIN_CHECK -> handleLoginCheck(request);
                     default -> {
-                        serverController.addLog("Codice richiesta non riconosciuto: " + request.getRequestCode());
+                        serverController.addLog("Codice richiesta non riconosciuto: " + request.getInt(Structures.REQUEST_CODE_KEY));
                         throw new Exception("Codice richiesta sconosciuto");
                     }
                 }
@@ -59,40 +58,56 @@ public class ClientManager {
     }
 
     /** Metodi per gestire le richieste del client */
-    private void handleUpdateMails(Request<List<Integer>> request) {
-        try {
-            List<Integer> existingIds = request.getPayload();
-            ArrayList<Mail> newMails = messageService.getMessagesByReceiver(request.getRequestId(), existingIds);
-            Request<ArrayList<Mail>> response = new Request<>(Structures.UPDATE_MAILS, newMails, "SERVER");
-            output.writeObject(response);
-            serverController.addLog("Aggiornamento delle mail inviato a: " + request.getRequestId());
-        } catch (IOException e) {
-            serverController.addLog("Errore durante l'aggiornamento delle mail: " + e.getMessage());
+    private void handleUpdateMails(JSONObject request) {
+
+        JSONArray existingIds = request.getJSONArray(Structures.REQUEST_PAYLOAD_KEY);
+        String newMails_list = messageService.getMessagesByReceiver(request.getString(Structures.REQUEST_ID_KEY), existingIds);
+        String new_mails = Structures.build_request(Structures.UPDATE_MAILS, newMails_list, "SERVER");
+        if(Structures.sendRequest(clientSocket, new_mails)){
+            serverController.addLog("Aggiornamento delle mail inviato a: " + request.getString(Structures.REQUEST_ID_KEY));
+        } else {
+            serverController.addLog("Errore durante l'aggiornamento delle mail: ");
         }
+
     }
 
     /** Metodo per gestire il ping */
-    private void handlePing(Request<String> request) {
-        try {
-            Request<String> response = new Request<>(Structures.PING, "pong", "SERVER");
-            output.writeObject(response);
-            serverController.addLog("Ping ricevuto da: " + request.getRequestId());
-        } catch (IOException e) {
-            serverController.addLog("Errore durante il ping: " + e.getMessage());
+    private void handlePing(JSONObject request) {
+
+        String pong_response = Structures.build_request(Structures.PING, "pong", "SERVER");
+        if(Structures.sendRequest(clientSocket, pong_response)){
+            serverController.addLog("Ping ricevuto da: " + request.getString(Structures.REQUEST_ID_KEY));
+        } else {
+            serverController.addLog("Errore durante il ping: ");
         }
+
     }
 
     /** Metodo per gestire l'invio di una mail */
-    private void handleSendMail(Request<Mail> request) {
+    private void handleSendMail(JSONObject request) {
         try {
-            Mail newMail = request.getPayload();
-            serverController.addLog("Nuova mail ricevuta da: " + newMail.getSender());
-            for (String destinatario : newMail.getReceivers()) {
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH + destinatario.split("@")[0] + ".txt", true))) {
-                    writer.write(newMail.toString());
-                    writer.newLine();
+            // Estrai il payload dalla request (la mail inviata)
+            String newMailJson_string = request.getString(Structures.REQUEST_PAYLOAD_KEY);
+            JSONObject newMailJson = new JSONObject(newMailJson_string);
+            JSONArray receivers = newMailJson.getJSONArray(Structures.MAIL_RECEIVERS_KEY);
+
+            // Salva la mail per ogni destinatario
+            for (int i = 0; i < receivers.length(); i++) {
+                String destinatario = receivers.getString(i);
+
+                // Carica il file esistente, se c'è
+                JSONArray existingMails = messageService.loadMessages(destinatario);
+
+                // Aggiungi la nuova mail al JSONArray
+                existingMails.put(newMailJson);
+
+                // Scrivi il JSONArray aggiornato nel file
+                String filePath = Structures.FILE_PATH + destinatario.split("@")[0] + ".json";
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                    writer.write(existingMails.toString(2)); // scrive con indentazione
+                    writer.newLine(); // Aggiungi una nuova linea (opzionale, per una scrittura più ordinata)
                 }
-                serverController.addLog("Mail salvata con successo.");
+                serverController.addLog("Mail salvata con successo per il destinatario: " + destinatario);
             }
         } catch (IOException e) {
             serverController.addLog("Errore durante il salvataggio della mail: " + e.getMessage());
@@ -100,24 +115,24 @@ public class ClientManager {
     }
 
     /** Metodo per gestire la verifica del destinatario */
-    private void handleDestCheck(Request<String> request) {
-        try {
-            String destEmail = request.getPayload();
-            boolean destExists = Structures.checkUserExists(destEmail);
-            int responseCode = destExists ? Structures.DEST_OK : Structures.DEST_ERROR;
-            Request<String> response = new Request<>(responseCode, destEmail, "SERVER");
-            output.writeObject(response);
+    private void handleDestCheck(JSONObject request) {
+
+        String destEmail = request.getString(Structures.REQUEST_PAYLOAD_KEY);
+        boolean destExists = Structures.checkUserExists(destEmail);
+        int responseCode = destExists ? Structures.DEST_OK : Structures.DEST_ERROR;
+        String response = Structures.build_request(responseCode, destEmail, "SERVER");
+        if (Structures.sendRequest(clientSocket, response)) {
             serverController.addLog("Verifica destinatario per: " + destEmail + " esito: " + (destExists ? "OK" : "ERROR"));
-        } catch (IOException e) {
-            serverController.addLog("Errore durante la verifica del destinatario: " + e.getMessage());
+        } else {
+            serverController.addLog("Errore durante la verifica del destinatario: ");
         }
+
     }
 
     /** Metodo per gestire il logout */
-    private void handleLogout() {
-        serverController.addLog("Logout request received, resetting file pointer.");
+    private void handleLogout(JSONObject request) {
+        serverController.addLog("Richiesta di logout ricevuta da ---> " + request.getString(Structures.REQUEST_ID_KEY));
         try {
-            if (output != null) output.close();
             clientSocket.close();
         } catch (IOException e) {
             serverController.addLog("Errore durante la chiusura della connessione: " + e.getMessage());
@@ -125,8 +140,8 @@ public class ClientManager {
     }
 
     /** Metodo per gestire la verifica del login */
-    private boolean handleLoginCheck(Request<String> request, ObjectOutputStream output) throws IOException {
-        String userEmail = request.getPayload();
+    private boolean handleLoginCheck(JSONObject request) throws IOException {
+        String userEmail = request.getString(Structures.REQUEST_ID_KEY);
         boolean userExists = Structures.checkUserExists(userEmail);
         int responseCode;
         boolean response_bool;
@@ -140,67 +155,69 @@ public class ClientManager {
             response_bool = false;
         }
 
-        Request<String> response = new Request<>(responseCode, userEmail, "SERVER");
-        output.writeObject(response);
+        String response = Structures.build_request(responseCode, userEmail, "SERVER");
+        if (Structures.sendRequest(clientSocket, response)) {
+            serverController.addLog("Verifica login per " + userEmail + " esito: " + (response_bool ? "OK" : "ERROR"));
+        } else {
+            serverController.addLog("Errore durante la verifica del login per: " + userEmail);
+        }
         return response_bool;
     }
 
     /** Metodo per gestire la cancellazione delle mail */
-    private void handleDelete(Request<ArrayList<Integer>> request) {
+    private void handleDelete(JSONObject request) {
 
-        String filePath = Structures.FILE_PATH + request.getRequestId().split("@")[0] + ".txt";
-        ArrayList<Integer> mailIdsToDelete = request.getPayload();
+        String email = request.getString(Structures.REQUEST_ID_KEY);
+
+        // Carica le mail per l'email specificata usando la funzione loadMessages
+        JSONArray allMails = messageService.loadMessages(email);
+
+        // Ottieni gli ID delle mail da eliminare dal campo "payload"
+        JSONArray mailIdsToDelete = request.getJSONArray(Structures.REQUEST_PAYLOAD_KEY);
 
         try {
-            // Leggi tutte le righe dal file
-            List<String> allLines = new ArrayList<>();
-            try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    allLines.add(line);
-                }
-            }
+            // Filtra le mail da mantenere (rimuovendo quelle con id presente in mailIdsToDelete)
+            JSONArray filteredMails = new JSONArray();
+            for (int i = 0; i < allMails.length(); i++) {
+                JSONObject mail = allMails.getJSONObject(i);
+                int mailId = mail.getInt(Structures.MAIL_ID_KEY);  // Ottieni l'ID della mail
 
-            // Filtra le righe da mantenere
-            List<String> filteredLines = new ArrayList<>();
-            for (String line : allLines) {
-                // Split della riga per ottenere l'ID
-                String[] parts = line.split("§");
-                if (parts.length > 0) {
-                    try {
-                        int id = Integer.parseInt(parts[parts.length - 1]); // Ultimo elemento è l'ID
-                        if (!mailIdsToDelete.contains(id)) {
-                            filteredLines.add(line); // Mantieni la riga se l'ID non è nell'elenco
-                        }
-                    } catch (NumberFormatException e) {
-                        // Se l'ID non è un numero, mantieni comunque la riga
-                        filteredLines.add(line);
+                // Aggiungi la mail all'array filtrato solo se il suo ID non è nell'elenco di ID da eliminare
+                boolean shouldDelete = false;
+                for (int j = 0; j < mailIdsToDelete.length(); j++) {
+                    if (mailIdsToDelete.getInt(j) == mailId) {
+                        shouldDelete = true;
+                        break;
                     }
                 }
-            }
 
-            // Scrivi le righe filtrate nel file
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-                for (String filteredLine : filteredLines) {
-                    writer.write(filteredLine);
-                    writer.newLine();
+                // Se non deve essere eliminata, aggiungila all'array filtrato
+                if (!shouldDelete) {
+                    filteredMails.put(mail);
                 }
             }
 
-            serverController.addLog("Mail eliminate per: " + request.getRequestId());
+            // Scrivi il nuovo JSONArray nel file (solo le mail da mantenere)
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(Structures.FILE_PATH + email.split("@")[0] + ".json"))) {
+                writer.write(filteredMails.toString(2)); // Scrive con indentazione
+            }
+
+            serverController.addLog("Mail eliminate per: " + email);
+
         } catch (IOException e) {
-            serverController.addLog("Errore durante la cancellazione delle mail per " + request.getRequestId() + ": " + e.getMessage());
+            serverController.addLog("Errore durante la cancellazione delle mail per " + email + ": " + e.getMessage());
+        } catch (JSONException e) {
+            serverController.addLog("Errore nel parsing del JSON: " + e.getMessage());
         }
     }
 
     /** Metodo per chiudere la connessione */
     private void closeConnection() {
         try {
-            if (input != null) input.close();
-            if (output != null) output.close();
             if (clientSocket != null && !clientSocket.isClosed()) clientSocket.close();
         } catch (IOException e) {
             serverController.addLog("Errore durante la chiusura della connessione: " + e.getMessage());
         }
     }
+
 }

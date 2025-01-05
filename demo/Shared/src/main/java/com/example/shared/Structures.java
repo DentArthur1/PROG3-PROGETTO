@@ -6,9 +6,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -17,6 +16,9 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class Structures {
     /**
@@ -45,6 +47,19 @@ public class Structures {
     public static final int DEST_ERROR = 8;
     public static final int LOGOUT = 9;
     public static final int DELETE = 10;
+
+    public static final String REQUEST_CODE_KEY = "requestCode";
+    public static final String REQUEST_PAYLOAD_KEY = "requestPayload";
+    public static final String REQUEST_ID_KEY = "requestId";
+    public static final String MAIL_ID_KEY = "mailId";
+    public static final String MAIL_SENDER_KEY = "sender";
+    public static final String MAIL_TITLE_KEY = "title";
+    public static final String MAIL_CONTENT_KEY = "content";
+    public static final String MAIL_RECEIVERS_KEY = "receivers";
+    public static final String MAIL_DATE_KEY = "date";
+
+    public static final String MAIL_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+
 
 
     /**
@@ -76,10 +91,9 @@ public class Structures {
      * Metodo per verificare se un utente esiste.
      * @param email l'email dell'utente.
      * @return true se l'utente esiste, altrimenti false.
-     * @throws IOException se si verifica un errore durante la lettura del file.
      */
 
-    public static boolean checkUserExists(String email) throws IOException {
+    public static boolean checkUserExists(String email) {
         try (BufferedReader reader = new BufferedReader(new FileReader(Structures.USER_PATH))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -87,6 +101,8 @@ public class Structures {
                     return true;
                 }
             }
+        } catch (Exception e) {
+            System.out.println("Exeption caught while checking user exists");
         }
         return false;
     }
@@ -117,5 +133,83 @@ public class Structures {
 
     public static boolean isValidEmail(String email) {
         return Pattern.matches(EMAIL_REGEX, email);
+    }
+
+    /**
+     * Costruisce la richiesta e la converte in stringa, per essere inviata al server*/
+    public static <T extends Serializable>  String build_request(int requestCode, T payload, String requestId) {
+        JSONObject json = new JSONObject();
+        json.put(REQUEST_CODE_KEY, requestCode);
+        json.put(REQUEST_PAYLOAD_KEY, payload);
+        json.put(REQUEST_ID_KEY, requestId);
+        return json.toString();
+    }
+
+    /**
+     * Invia la richiesta*/
+    public static boolean sendRequest(Socket clientSocket, String message)  {
+        try {
+            OutputStream output = clientSocket.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output));
+
+            writer.write(message);
+            writer.newLine();
+            writer.flush();
+            return true;
+        } catch (Exception e) {
+            System.out.println("Errore nell'invio della richiesta ---> " + message + "\n\rCon codice di errore ---> " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Aspetta la risposta del server e ne fornisce il contenuto*/
+    public static JSONObject wait_for_response(Socket clientSocket) {
+        try {
+            InputStream input = clientSocket.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+
+            // Legge l'intera risposta come una singola linea
+            String response = reader.readLine();
+
+            // Controlla che la risposta non sia null (es. connessione chiusa)
+            if (response == null) {
+                throw new Exception("Nessuna risposta dal server.");
+            }
+
+            // Converte la stringa in JSONObject
+            JSONObject response_json = new JSONObject(response);
+            return response_json;
+        } catch (Exception e) {
+            System.out.println("Errore nel parsing della richiesta dal server");
+            return null;
+        }
+    }
+
+    /**
+     * Costruisce un JSONObject mail e lo converte in stringa, per essere inviato al server*/
+    public static String build_mail(String sender, String title, String content, String[] receivers, LocalDateTime date, int id) {
+        // Crea un nuovo JSONObject
+        JSONObject mailJson = new JSONObject();
+
+        // Aggiungi le informazioni della mail
+        mailJson.put(Structures.MAIL_SENDER_KEY, sender);
+        mailJson.put(Structures.MAIL_TITLE_KEY, title);
+        mailJson.put(Structures.MAIL_CONTENT_KEY, content);
+
+        // Converte l'array di receivers in JSONArray
+        JSONArray receiversArray = new JSONArray(receivers);
+        mailJson.put(Structures.MAIL_RECEIVERS_KEY, receiversArray);
+
+        // Converte la LocalDateTime in una stringa
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Structures.MAIL_TIME_FORMAT);
+        String dateString = date.format(formatter);
+        mailJson.put(Structures.MAIL_DATE_KEY, dateString);
+
+        // Aggiungi l'id
+        mailJson.put(Structures.MAIL_ID_KEY, id);
+
+        // Ritorna la rappresentazione in stringa del JSONObject
+        return mailJson.toString();
     }
 }
