@@ -133,7 +133,7 @@ public class InboxController {
             public void run() {
                 updateServerStatus();
             }
-        }, 0, 500); // Ping every 0.5 seconds
+        }, 0, 250); //   Ping every 0.5 seconds
     }
 
     /** Avvia un task periodico per aggiornare le email */
@@ -332,8 +332,10 @@ public class InboxController {
             String delete_request = Structures.build_request(Structures.DELETE, mail_ids, backup.getUserEmailBackup());
             Structures.sendRequest(clientSocket, delete_request);
             emailList.removeAll(selectedEmails);
+            hideError();
         } catch (Exception e) {
             System.out.println("Failed deleting mails.");
+            showError("Errore nell'eliminazione delle email.");
         }
         // Aggiorna il backup per riflettere la nuova lista di email
         backup.setEmailBackup(FXCollections.observableArrayList(emailList));
