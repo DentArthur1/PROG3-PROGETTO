@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
 
 public class LoginController {
@@ -55,9 +56,9 @@ public class LoginController {
                     // Se l'utente non è stato trovato, visualizza un messaggio di errore
                     errorLabel.setText("Login failed. User not found.");
                 }
+            } catch (ConnectException e) {
+                errorLabel.setText("Error connecting to server.");
             } catch (IOException e) {
-                // gestisce gli errori di connessione al server
-                e.printStackTrace();
                 errorLabel.setText("Error connecting to server.");
             }
         }
