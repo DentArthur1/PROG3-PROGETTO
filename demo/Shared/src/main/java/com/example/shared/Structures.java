@@ -80,7 +80,7 @@ public class Structures {
             return controller;
 
         } catch (IOException e){
-            System.out.println("Exeption caught while changing scene");
+            System.out.println("Eccezione catturata durante il cambio di scena");
             return null;
         }
         /**DOPO AVER CAMBIATO SCENA È NECESSARIO "PASSARE" AL NUOVO CONTROLLER IL BACKUP*/
@@ -101,7 +101,7 @@ public class Structures {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Exeption caught while checking user exists");
+            System.out.println("Eccezione catturata durante la verifica dell'esistenza dell'utente");
         }
         return false;
     }
