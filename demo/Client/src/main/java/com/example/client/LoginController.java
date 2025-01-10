@@ -35,7 +35,7 @@ public class LoginController {
 
         // Controlla se l'email inserita è in un formato valido.
         if (!Structures.isValidEmail(user_mail)) {
-            errorLabel.setText("Invalid email format. Please try again.");
+            errorLabel.setText("Formato email non valido. Per favore riprova.");
         } else {
             // Tenta di connettersi al server per verificare l'email.
             try (Socket socket = new Socket("localhost", Structures.PORT)) {
@@ -54,12 +54,12 @@ public class LoginController {
                     inbox_controller.access_inbox(backup);
                 } else {
                     // Se l'utente non è stato trovato, visualizza un messaggio di errore
-                    errorLabel.setText("Login failed. User not found.");
+                    errorLabel.setText("Login failed. Utente non trovato.");
                 }
             } catch (ConnectException e) {
-                errorLabel.setText("Error connecting to server.");
+                errorLabel.setText("Errore di connessione al server.");
             } catch (IOException e) {
-                errorLabel.setText("Error connecting to server.");
+                errorLabel.setText("Errore di connessione al server.");
             }
         }
     }

@@ -42,7 +42,7 @@ public class MessageService {
                 messages.put(mailJson);
             }
         } catch (IOException e) {
-            System.err.println("Error reading the file: " + e.getMessage());
+            System.err.println("Errore nella lettura del file: " + e.getMessage());
         }
 
         return messages;

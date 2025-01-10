@@ -101,7 +101,7 @@ public class sendController {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                    errorLabel.setText("Error connecting to server.");
+                    errorLabel.setText("Errore di connessione al server.");
                     break;
                 }
             } else {
