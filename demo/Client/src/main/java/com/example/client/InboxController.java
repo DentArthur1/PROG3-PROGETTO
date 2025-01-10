@@ -229,7 +229,6 @@ public class InboxController {
 
             return parse_mails(mails_response);
         } catch (Exception e) {
-            System.out.println("Non è stato possibile recuperare le email. A causa di questo errore --->" + e.getMessage());
             return null;
         }
 
@@ -295,13 +294,6 @@ public class InboxController {
         stop_email_update();
         stop_ping_timer();
         Structures.change_scene((Stage) emailTable.getScene().getWindow(), new FXMLLoader(EmailController.class.getResource("Login.fxml")));
-        try {
-            Socket clientSocket = new Socket("localhost", Structures.PORT);
-            String logout_request = Structures.build_request(Structures.LOGOUT,"", backup.getUserEmailBackup());
-            Structures.sendRequest(clientSocket, logout_request);
-        } catch (Exception e) {
-            System.out.println("Failed requesting logout.");
-        }
     }
 
     /** Accedo ad una schermata pe la composizione di una nuova mail */
@@ -334,7 +326,6 @@ public class InboxController {
             emailList.removeAll(selectedEmails);
             hideError();
         } catch (Exception e) {
-            System.out.println("Failed deleting mails.");
             showError("Errore nell'eliminazione delle email.");
         }
         // Aggiorna il backup per riflettere la nuova lista di email

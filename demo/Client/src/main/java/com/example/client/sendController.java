@@ -90,6 +90,7 @@ public class sendController {
                         // Aggiungi il destinatario alla lista visibile
                         receiversList.appendText(destinatario + "\n");
                         // Cancella il campo per il prossimo inserimento
+                        errorLabel.setText("");
                         toField.clear();
                     } else if (dest_check_response.getInt(Structures.REQUEST_CODE_KEY) == Structures.DEST_ERROR) {
                         errorLabel.setText("Errore: Indirizzo email: " + destinatario + " non trovato.");
@@ -99,9 +100,8 @@ public class sendController {
                         successLabel.setText(""); // Cancella eventuali successi precedenti
                         break;
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    errorLabel.setText("Error connecting to server.");
+                } catch (Exception e) {
+                    errorLabel.setText("Errore di connessione al server");
                     break;
                 }
             } else {
@@ -126,7 +126,7 @@ public class sendController {
         String corpo = bodyArea.getText().trim().replace("\n", "").replace("\r", "");
 
         String[] destinatari = receiversList.getText().trim().split("\n"); // Legge tutti i destinatari
-        System.out.println(Arrays.toString(destinatari));
+
         LocalDateTime date = LocalDateTime.now();
 
         /** Controllo della correttezza degli input */
@@ -160,13 +160,10 @@ public class sendController {
                 receiversList.clear();
                 subjectField.clear();
                 bodyArea.clear();
-            } else {
-                errorLabel.setText("Errore durante l'invio dell'email (sendRequest ha ritornato falso)");
             }
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             // Gestione dell'errore durante l'invio
-            errorLabel.setText("Errore durante l'apertura del socket o la costruzione della richiesta per l'invio di una mail" + e.getMessage());
+            errorLabel.setText("Errore di connessione al server");
             successLabel.setText(""); // Cancella eventuali successi
         }
     }

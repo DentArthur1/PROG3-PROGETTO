@@ -39,18 +39,15 @@ public class ClientManager {
                     case Structures.PING -> handlePing(request);
                     case Structures.SEND_MAIL -> handleSendMail(request);
                     case Structures.DEST_CHECK -> handleDestCheck(request);
-                    case Structures.LOGOUT -> handleLogout(request);
                     case Structures.DELETE -> handleDelete(request);
                     case Structures.LOGIN_CHECK -> handleLoginCheck(request);
                     default -> {
                         serverController.addLog("Codice richiesta non riconosciuto: " + request.getInt(Structures.REQUEST_CODE_KEY));
-                        throw new Exception("Codice richiesta sconosciuto");
                     }
                 }
 
             } catch (Exception e) {
                 serverController.addLog("Errore nella gestione del client: ");
-                e.printStackTrace();
             } finally {
                 closeConnection();
             }
@@ -110,7 +107,7 @@ public class ClientManager {
                 serverController.addLog("Mail salvata con successo per il destinatario: " + destinatario);
             }
         } catch (IOException e) {
-            serverController.addLog("Errore durante il salvataggio della mail: " + e.getMessage());
+            serverController.addLog("Errore durante il salvataggio della mail");
         }
     }
 
@@ -127,16 +124,6 @@ public class ClientManager {
             serverController.addLog("Errore durante la verifica del destinatario: ");
         }
 
-    }
-
-    /** Metodo per gestire il logout */
-    private void handleLogout(JSONObject request) {
-        serverController.addLog("Richiesta di logout ricevuta da ---> " + request.getString(Structures.REQUEST_ID_KEY));
-        try {
-            clientSocket.close();
-        } catch (IOException e) {
-            serverController.addLog("Errore durante la chiusura della connessione: " + e.getMessage());
-        }
     }
 
     /** Metodo per gestire la verifica del login */

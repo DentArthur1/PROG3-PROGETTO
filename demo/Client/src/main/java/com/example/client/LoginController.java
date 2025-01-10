@@ -54,12 +54,10 @@ public class LoginController {
                     inbox_controller.access_inbox(backup);
                 } else {
                     // Se l'utente non è stato trovato, visualizza un messaggio di errore
-                    errorLabel.setText("Login failed. User not found.");
+                    errorLabel.setText("Login fallito: User non trovato.");
                 }
-            } catch (ConnectException e) {
-                errorLabel.setText("Error connecting to server.");
-            } catch (IOException e) {
-                errorLabel.setText("Error connecting to server.");
+            } catch (Exception e) {
+                errorLabel.setText("Errore di connessione al server.");
             }
         }
     }

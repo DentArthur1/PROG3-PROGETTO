@@ -45,7 +45,6 @@ public class Structures {
     public static final int DEST_CHECK = 6;
     public static final int DEST_OK = 7;
     public static final int DEST_ERROR = 8;
-    public static final int LOGOUT = 9;
     public static final int DELETE = 10;
 
     public static final String REQUEST_CODE_KEY = "requestCode";
