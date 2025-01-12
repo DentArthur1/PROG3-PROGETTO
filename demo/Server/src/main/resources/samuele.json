@@ -1,1 +1,40 @@
-[]
+[
+  {
+    "date": "2025-01-12T16:57:44",
+    "sender": "daniele@sigmamail.com",
+    "receivers": [
+      "samuele@sigmamail.com",
+      "raffaele@sigmamail.com"
+    ],
+    "mailId": -829861554,
+    "title": "CIAO",
+    "content": "CIAO."
+  },
+  {
+    "date": "2025-01-12T16:58:51",
+    "sender": "raffaele@sigmamail.com",
+    "receivers": [
+      "samuele@sigmamail.com",
+      "daniele@sigmamail.com"
+    ],
+    "mailId": 1592464047,
+    "title": "RE:CIAO",
+    "content": "RE:CIAO."
+  },
+  {
+    "date": "2025-01-12T17:02:10",
+    "sender": "samuele@sigmamail.com",
+    "receivers": ["samuele@sigmamail.com"],
+    "mailId": -802248214,
+    "title": "prova",
+    "content": "ff"
+  },
+  {
+    "date": "2025-01-12T17:04:04",
+    "sender": "daniele@sigmamail.com",
+    "receivers": ["samuele@sigmamail.com"],
+    "mailId": -1081420751,
+    "title": "RE:ciao",
+    "content": "RE:33"
+  }
+]

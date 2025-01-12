@@ -1,8 +1,18 @@
-[{
-  "date": "2025-01-10T18:23:55",
-  "sender": "samuele@sigmamail.com",
-  "receivers": ["daniele@sigmamail.com"],
-  "mailId": -430291506,
-  "title": "ciao",
-  "content": "cccc"
-}]
+[
+  {
+    "date": "2025-01-12T17:00:57",
+    "sender": "raffaele@sigmamail.com",
+    "receivers": ["daniele@sigmamail.com"],
+    "mailId": -476697075,
+    "title": "ff",
+    "content": "ff"
+  },
+  {
+    "date": "2025-01-12T17:03:52",
+    "sender": "samuele@sigmamail.com",
+    "receivers": ["daniele@sigmamail.com"],
+    "mailId": -747238578,
+    "title": "ciao",
+    "content": "33"
+  }
+]

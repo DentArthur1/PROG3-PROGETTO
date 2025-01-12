@@ -102,6 +102,7 @@ public class sendController {
                     }
                 } catch (Exception e) {
                     errorLabel.setText("Errore di connessione al server");
+                    successLabel.setText("");
                     break;
                 }
             } else {
